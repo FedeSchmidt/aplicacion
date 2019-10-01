@@ -1,14 +1,15 @@
-<div class="row mt-2">
-        <div class="col-12">
-    
-          <h3>Linear Model</h3>
-          <div class="input-group mb-3">
-              
-              <input type="number" class="form-control" (change)="predict($event.target.value)">
-            </div>
-    
+<div class="row mt-2 justify-content-center">
+        <div class="col-10">
+          
+            <h3>Linear Model</h3>
+
+            <div class="input-group mb-3">
+                
+                <input type="number" class="form-control" (change)="predict($event.target.value)" placeholder="Ingrese un valor entero...">
+              </div>
+
           <h4>Predicted Value: {{ prediction }}</h4>
           <canvas id="myChart"></canvas>
         </div>
-      </div>
+  </div>
     
