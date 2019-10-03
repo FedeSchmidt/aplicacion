@@ -23,9 +23,97 @@ export class MnistComponent implements OnInit {
 	MNIST_IMAGES_SPRITE_PATH = 'https://storage.googleapis.com/learnjs-data/model-builder/mnist_images.png';
 	MNIST_LABELS_PATH = 'https://storage.googleapis.com/learnjs-data/model-builder/mnist_labels_uint8';
 
+	progreso = 0;
+	validation_accuracy;
+	test_accuracy;
+
 	constructor() {}
 
-	ngOnInit() {}
+	ngOnInit() {
+		this.load().then(() => {
+			const model = this.createDenseModel();
+			this.train(model, false);
+		});
+	}
+
+	createDenseModel() {
+		const model = tf.sequential();
+		model.add(tf.layers.flatten({ inputShape: [ this.IMAGE_H, this.IMAGE_W, 1 ] }));
+		model.add(tf.layers.dense({ units: 42, activation: 'relu' }));
+		model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
+		return model;
+	}
+
+	async train(model, onIteration) {
+		const optimizer = 'rmsprop';
+
+		model.compile({
+			optimizer,
+			loss: 'categoricalCrossentropy',
+			metrics: [ 'accuracy' ]
+		});
+
+		const batchSize = 320;
+
+		// Leave out the last 15% of the training data for validation, to monitor
+		// overfitting during training.
+		const validationSplit = 0.15;
+
+		// Get number of training epochs from the UI.
+		const trainEpochs = 10;
+
+		// We'll keep a buffer of loss and accuracy values over time.
+		let trainBatchCount = 0;
+
+		const trainData = this.getTrainData();
+		const testData = this.getTestData(null);
+
+		const totalNumBatches = Math.ceil(trainData.xs.shape[0] * (1 - validationSplit) / batchSize) * trainEpochs;
+
+		let valAcc;
+		await model.fit(trainData.xs, trainData.labels, {
+			batchSize,
+			validationSplit,
+			epochs: trainEpochs,
+			callbacks: {
+				onBatchEnd: async (batch, logs) => {
+					trainBatchCount++;
+					this.progreso = Math.floor(trainBatchCount / totalNumBatches * 100);
+					console.log(
+						`Training... (` +
+							`${(trainBatchCount / totalNumBatches * 100).toFixed(1)}%` +
+							` complete). To stop training, refresh or close page.`
+					);
+					//ui.plotLoss(trainBatchCount, logs.loss, 'train');
+					//ui.plotAccuracy(trainBatchCount, logs.acc, 'train');
+					if (onIteration && batch % 10 === 0) {
+						onIteration('onBatchEnd', batch, logs);
+					}
+					await tf.nextFrame();
+				},
+				onEpochEnd: async (epoch, logs) => {
+					valAcc = logs.val_acc;
+					// ui.plotLoss(trainBatchCount, logs.val_loss, 'validation');
+					// ui.plotAccuracy(trainBatchCount, logs.val_acc, 'validation');
+					if (onIteration) {
+						onIteration('onEpochEnd', epoch, logs);
+					}
+					await tf.nextFrame();
+				}
+			}
+		});
+
+		const testResult = model.evaluate(testData.xs, testData.labels);
+		const testAccPercent = testResult[1].dataSync()[0] * 100;
+		const finalValAccPercent = valAcc * 100;
+		this.validation_accuracy = finalValAccPercent.toFixed(2);
+		this.test_accuracy = testAccPercent.toFixed(2);
+		console.log(
+			`Final validation accuracy: ${finalValAccPercent.toFixed(1)}%; ` +
+				`Final test accuracy: ${testAccPercent.toFixed(1)}%` +
+				`Test result: ${testResult}`
+		);
+	}
 
 	async load() {
 		const img = new Image();
