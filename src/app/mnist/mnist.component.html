@@ -13,26 +13,28 @@
                 </tr>
             </thead>
             <tbody id="net-table-body">
-                <tr *ngFor="let i of arr">
-                    <th>{{i}}</th>
+
+                <tr *ngFor="let layer of net; let i = index">
+                    <th>{{ i }}</th>
                     <td>
-                        <select class="form-control">
+                        <select class="form-control" (change)="onChange($event.target.value, 'type', i)">
                             <option>Flatten</option>
                             <option>Dense</option>
                         </select>
                     </td>
                     <td>
-                        <input type="number" class="form-control">
+                        <input type="number" class="form-control" (change)="onChange($event.target.value, 'units', i)">
                     </td>
                     <td>
-                        <select class="form-control">
+                        <select class="form-control" (change)="onChange($event.target.value, 'activation', i)">
                             <option>ReLU</option>
                             <option>Softmax</option>
                         </select>
                     </td>
-                    <td><i class="fas fa-times" (click)="removeLayer()"></i></td>
+                    <td><i class="fas fa-times" (click)="removeLayer(i)"></i></td>
                     
                 </tr>
+                
                 
             </tbody>
         </table>
@@ -40,8 +42,8 @@
     </div>
 </div>
 
-<div class="row">
-    <div class="col-12">
+<div class="row justify-content-center mt-2">
+    <div class="col-10">
         <button type="button" class="btn btn-primary" (click)="entrenar()">Entrenar!</button>
 
         <h2>Progreso: {{ progreso }} %</h2>

@@ -1,8 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
 import { Layer } from './../models/layer';
-import { array } from '@tensorflow/tfjs-data';
-import { $ } from 'protractor';
 
 @Component({
 	selector: 'app-mnist',
@@ -38,33 +36,50 @@ export class MnistComponent implements OnInit {
 	constructor() {}
 
 	ngOnInit() {
-		for (let i = 0; i < this.cantLayers; i++) {
-			this.arr.push(i);
-		}
+		this.net.push(new Layer('Flatten', 0, 'ReLU'));
 	}
 
 	createModel() {
-		for (let i = 0; i < this.cantLayers; i++) {
-			let row = document.getElementById('net-table-body');
-			console.log(row);
+		const model = tf.sequential();
+
+		model.add(tf.layers.flatten({ inputShape: [ this.IMAGE_H, this.IMAGE_W, 1 ] }));
+
+		for (let i = 1; i < this.net.length; i++) {
+			let layer = this.net[i];
+			model.add(tf.layers.dense({ units: layer.units, activation: layer.activation }));
 		}
+
+		console.log(model);
+
+		return model;
 	}
 
 	entrenar() {
 		console.log('entrenar');
-		this.createModel();
-		// this.load().then(() => {
-		// 	const model = this.createDenseModel();
-		// 	this.train(model, false);
-		// });
+		//this.createModel();
+		this.load().then(() => {
+			const model = this.createModel();
+			this.train(model, false);
+		});
 	}
 
 	newLayer() {
-		this.arr.push(this.arr.length);
+		this.net.push(new Layer('Flatten', 0, 'ReLU'));
 	}
 
-	removeLayer() {
-		this.arr.pop();
+	removeLayer(index) {
+		// delete this.net[index];
+		this.net.splice(index, 1);
+		console.log(this.net);
+	}
+	onChange(value, field, index) {
+		console.log(value);
+		if (field == 'units') {
+			this.net[index][field] = parseInt(value);
+		} else {
+			this.net[index][field] = value;
+		}
+		console.log(this.net);
 	}
 
 	createDenseModel() {
