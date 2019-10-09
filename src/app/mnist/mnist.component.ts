@@ -33,12 +33,100 @@ export class MnistComponent implements OnInit {
 
 	cantLayers = 1;
 
+	painting = false;
+	cx: CanvasRenderingContext2D;
+	canvas: HTMLCanvasElement;
+
 	constructor() {}
 
 	ngOnInit() {
 		this.net.push(new Layer('Flatten', 0, 'ReLU'));
+		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+		if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+
+		console.log(this.canvas);
+		console.log(this.cx);
+
+		if (this.cx) {
+			// React to mouse events on the canvas, and mouseup on the entire document
+			this.canvas.addEventListener('mousedown', this.startPosition, false);
+			this.canvas.addEventListener('mousemove', this.draw, false);
+			this.canvas.addEventListener('mouseup', this.finishedPosition, false);
+		}
+
+		// this.canvas.addEventListener('mousedown', this.startPosition);
+		// this.canvas.addEventListener('mouseup', this.finishedPosition);
+		// this.canvas.addEventListener('mousemove', this.draw);
+		// this.canvas.addEventListener('mousedown', function() {
+		// 	this.painting = true;
+		// });
+		// this.canvas.addEventListener('mouseup', function() {
+		// 	this.painting = false;
+		// 	this.cx.beginPath();
+		// });
+		// this.canvas.addEventListener('mousemove', function(e) {
+		// 	this.cx.lineTo(e.clientX, e.clientY);
+		// 	this.cx.stroke();
+		// 	this.cx.beginPath();
+		// 	this.cx.moveTo(e.clientX, e.clientY);
+		// });
 	}
 
+	clearCanvas() {
+		if (this.cx == undefined) {
+			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+		}
+
+		this.cx.clearRect(0, 0, 400, 300);
+	}
+
+	private startPosition(e) {
+		this.painting = true;
+		//this.draw(e);
+	}
+
+	private finishedPosition() {
+		this.painting = false;
+
+		if (this.cx) {
+			this.cx.beginPath();
+		} else {
+			console.log('cerrando');
+			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+			this.cx.closePath();
+		}
+	}
+
+	private draw(e) {
+		//console.log(e);
+		if (!this.painting) return;
+
+		//console.log(this.ctx);
+		// this.cx.lineWidth = 10;
+		// this.cx.lineCap = 'round';
+		if (this.cx) {
+			//this.cx.fillStyle = 'black';
+			this.cx.lineWidth = 10;
+			this.cx.lineCap = 'round';
+			//var w = window.innerWidth / 12;
+			var w = window.scrollX + this.canvas.getBoundingClientRect().left; // X
+
+			var z = window.scrollY + this.canvas.getBoundingClientRect().top; // Y
+			this.cx.lineTo(e.clientX - w, e.clientY - z);
+			this.cx.stroke();
+			this.cx.beginPath();
+			this.cx.moveTo(e.clientX - w, e.clientY - z);
+		} else {
+			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+
+			this.canvas.addEventListener('mousedown', this.startPosition, false);
+			this.canvas.addEventListener('mousemove', this.draw, false);
+			this.canvas.addEventListener('mouseup', this.finishedPosition, false);
+		}
+	}
 	createModel() {
 		const model = tf.sequential();
 
@@ -238,5 +326,10 @@ export class MnistComponent implements OnInit {
 			labels = labels.slice([ 0, 0 ], [ numExamples, this.NUM_CLASSES ]);
 		}
 		return { xs, labels };
+	}
+
+	predict() {
+		var img = new Image();
+		var imgData = this.cx.getImageData(10, 10, 50, 50);
 	}
 }
