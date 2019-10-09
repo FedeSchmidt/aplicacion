@@ -1,5 +1,52 @@
-<p>mnist works!</p>
 
-<h2>Progreso: {{ progreso }} %</h2>
-<h2>Validation Accuracy final: {{ validation_accuracy }} %</h2>
-<h2>Test Accuracy final: {{ test_accuracy }} %</h2>
+<div class="row justify-content-center">
+    <div class="col-10">
+
+        <table id="net-table" class="table">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col">Units</th>
+                    <th scope="col">Activation</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody id="net-table-body">
+                <tr *ngFor="let i of arr">
+                    <th>{{i}}</th>
+                    <td>
+                        <select class="form-control">
+                            <option>Flatten</option>
+                            <option>Dense</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" class="form-control">
+                    </td>
+                    <td>
+                        <select class="form-control">
+                            <option>ReLU</option>
+                            <option>Softmax</option>
+                        </select>
+                    </td>
+                    <td><i class="fas fa-times" (click)="removeLayer()"></i></td>
+                    
+                </tr>
+                
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-primary" (click)="newLayer()">Nueva Capa </button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <button type="button" class="btn btn-primary" (click)="entrenar()">Entrenar!</button>
+
+        <h2>Progreso: {{ progreso }} %</h2>
+        <h2>Validation Accuracy final: {{ validation_accuracy }} %</h2>
+        <h2>Test Accuracy final: {{ test_accuracy }} %</h2>
+        
+    </div>
+</div>

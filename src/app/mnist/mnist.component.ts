@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
+import { Layer } from './../models/layer';
+import { array } from '@tensorflow/tfjs-data';
+import { $ } from 'protractor';
 
 @Component({
 	selector: 'app-mnist',
@@ -24,16 +27,44 @@ export class MnistComponent implements OnInit {
 	MNIST_LABELS_PATH = 'https://storage.googleapis.com/learnjs-data/model-builder/mnist_labels_uint8';
 
 	progreso = 0;
-	validation_accuracy;
-	test_accuracy;
+	validation_accuracy = 0;
+	test_accuracy = 0;
+
+	net = [];
+	arr = [];
+
+	cantLayers = 1;
 
 	constructor() {}
 
 	ngOnInit() {
-		this.load().then(() => {
-			const model = this.createDenseModel();
-			this.train(model, false);
-		});
+		for (let i = 0; i < this.cantLayers; i++) {
+			this.arr.push(i);
+		}
+	}
+
+	createModel() {
+		for (let i = 0; i < this.cantLayers; i++) {
+			let row = document.getElementById('net-table-body');
+			console.log(row);
+		}
+	}
+
+	entrenar() {
+		console.log('entrenar');
+		this.createModel();
+		// this.load().then(() => {
+		// 	const model = this.createDenseModel();
+		// 	this.train(model, false);
+		// });
+	}
+
+	newLayer() {
+		this.arr.push(this.arr.length);
+	}
+
+	removeLayer() {
+		this.arr.pop();
 	}
 
 	createDenseModel() {
@@ -106,8 +137,8 @@ export class MnistComponent implements OnInit {
 		const testResult = model.evaluate(testData.xs, testData.labels);
 		const testAccPercent = testResult[1].dataSync()[0] * 100;
 		const finalValAccPercent = valAcc * 100;
-		this.validation_accuracy = finalValAccPercent.toFixed(2);
-		this.test_accuracy = testAccPercent.toFixed(2);
+		this.validation_accuracy = parseFloat(finalValAccPercent.toFixed(2));
+		this.test_accuracy = parseFloat(testAccPercent.toFixed(2));
 		console.log(
 			`Final validation accuracy: ${finalValAccPercent.toFixed(1)}%; ` +
 				`Final test accuracy: ${testAccPercent.toFixed(1)}%` +
