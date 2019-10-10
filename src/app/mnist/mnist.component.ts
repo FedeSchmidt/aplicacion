@@ -28,8 +28,10 @@ export class MnistComponent implements OnInit {
 	validation_accuracy = 0;
 	test_accuracy = 0;
 
+	model: any;
 	net = [];
 	arr = [];
+	predictions: any;
 
 	cantLayers = 1;
 
@@ -71,6 +73,8 @@ export class MnistComponent implements OnInit {
 		// 	this.cx.moveTo(e.clientX, e.clientY);
 		// });
 	}
+
+	importModel() {}
 
 	clearCanvas() {
 		if (this.cx == undefined) {
@@ -146,8 +150,8 @@ export class MnistComponent implements OnInit {
 		console.log('entrenar');
 		//this.createModel();
 		this.load().then(() => {
-			const model = this.createModel();
-			this.train(model, false);
+			this.model = this.createDenseModel();
+			this.train(this.model, false);
 		});
 	}
 
@@ -328,8 +332,49 @@ export class MnistComponent implements OnInit {
 		return { xs, labels };
 	}
 
-	predict() {
-		var img = new Image();
-		var imgData = this.cx.getImageData(10, 10, 50, 50);
+	mostrar() {
+		if (!this.cx) {
+			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+		}
+
+		var imageData = this.cx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+		console.log(imageData);
 	}
+
+	async predict() {
+		if (!this.cx) {
+			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+		}
+
+		const pred = await tf.tidy(() => {
+			let imageData = this.cx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+			let img = tf.browser.fromPixels(imageData, 1).expandDims(0);
+			//let imgR = tf.reshape(img, [ 28, 28 ]);
+			let imgR = tf.cast(img, 'float32');
+			console.log(imgR);
+			console.log(this.model);
+
+			const output = this.model.predict(imgR) as any;
+
+			this.predictions = Array.from(output.dataSync());
+			console.log(this.predictions);
+			console.log(output);
+		});
+	}
+
+	// protected async predict(imageData: ImageData) {
+
+	// 	const pred = await tf.tidy(() => {
+
+	// 	  let img:any = tf.fromPixels(imageData, 1);
+	// 	  img = img.reshape([1, 28, 28, 1]);
+	// 	  img = tf.cast(img, 'float32');
+
+	// 	  const output = this.model.predict(img) as any;
+
+	// 	  this.predictions = Array.from(output.dataSync());
+	// 	});
+	// }
 }
