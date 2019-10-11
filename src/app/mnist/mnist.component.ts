@@ -32,12 +32,21 @@ export class MnistComponent implements OnInit {
 	net = [];
 	arr = [];
 	predictions: any;
+	prediction: any;
 
 	cantLayers = 1;
 
 	painting = false;
 	cx: CanvasRenderingContext2D;
 	canvas: HTMLCanvasElement;
+
+	// parámetros generales
+	learning_ratio = 0.1;
+	epochs = 10;
+	metrics = 'accuracy';
+	cost_function = 'Cross Entropy';
+	batch_check = true;
+	batch_size = 10;
 
 	constructor() {}
 
@@ -55,26 +64,7 @@ export class MnistComponent implements OnInit {
 			this.canvas.addEventListener('mousemove', this.draw, false);
 			this.canvas.addEventListener('mouseup', this.finishedPosition, false);
 		}
-
-		// this.canvas.addEventListener('mousedown', this.startPosition);
-		// this.canvas.addEventListener('mouseup', this.finishedPosition);
-		// this.canvas.addEventListener('mousemove', this.draw);
-		// this.canvas.addEventListener('mousedown', function() {
-		// 	this.painting = true;
-		// });
-		// this.canvas.addEventListener('mouseup', function() {
-		// 	this.painting = false;
-		// 	this.cx.beginPath();
-		// });
-		// this.canvas.addEventListener('mousemove', function(e) {
-		// 	this.cx.lineTo(e.clientX, e.clientY);
-		// 	this.cx.stroke();
-		// 	this.cx.beginPath();
-		// 	this.cx.moveTo(e.clientX, e.clientY);
-		// });
 	}
-
-	importModel() {}
 
 	clearCanvas() {
 		if (this.cx == undefined) {
@@ -338,10 +328,47 @@ export class MnistComponent implements OnInit {
 			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
 		}
 
-		var imageData = this.cx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-		console.log(imageData);
+		let c1 = document.createElement('canvas');
+		let ctx1 = c1.getContext('2d');
+		c1.width = 28;
+		c1.height = 28;
+		ctx1.drawImage(this.canvas, 4, 4, 20, 20);
+		//document.getElementById('img').src = c1.toDataURL();
+		// document.getElementById('c').style.display = 'none';
+		//hidden = true
+
+		var imgData = ctx1.getImageData(0, 0, 28, 28);
+		var imgBlack = [];
+		for (var i = 0; i < imgData.data.length; i += 4) {
+			if (imgData.data[i + 3] === 255) imgBlack.push(1);
+			else imgBlack.push(0);
+		}
+
+		var dataStr = JSON.stringify(imgData);
+		console.log(imgBlack);
 	}
 
+	getImage() {
+		if (!this.cx) {
+			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+		}
+
+		let c1 = document.createElement('canvas');
+		let ctx1 = c1.getContext('2d');
+		c1.width = 28;
+		c1.height = 28;
+		ctx1.drawImage(this.canvas, 4, 4, 20, 20);
+
+		var imgData = ctx1.getImageData(0, 0, 28, 28);
+		var imgBlack = [];
+		for (var i = 0; i < imgData.data.length; i += 4) {
+			if (imgData.data[i + 3] === 255) imgBlack.push(1);
+			else imgBlack.push(0);
+		}
+
+		return imgBlack;
+	}
 	async predict() {
 		if (!this.cx) {
 			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
@@ -349,32 +376,24 @@ export class MnistComponent implements OnInit {
 		}
 
 		const pred = await tf.tidy(() => {
-			let imageData = this.cx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-			let img = tf.browser.fromPixels(imageData, 1).expandDims(0);
-			//let imgR = tf.reshape(img, [ 28, 28 ]);
-			let imgR = tf.cast(img, 'float32');
-			console.log(imgR);
-			console.log(this.model);
+			// let imageData = this.cx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+			// let img = tf.browser.fromPixels(imageData, 1).expandDims(0);
+			// //let imgR = tf.reshape(img, [ 28, 28 ]);
+			// let imgR = tf.cast(img, 'float32');
+			// console.log(imgR);
+			// console.log(this.model);
+
+			let image = this.getImage();
+			//let img = tf.browser.fromPixels(image, 1).expandDims(0);
+			let imgR = tf.reshape(image, [ 28, 28, 1 ]).expandDims(0);
+			imgR = tf.cast(imgR, 'float32');
 
 			const output = this.model.predict(imgR) as any;
 
 			this.predictions = Array.from(output.dataSync());
 			console.log(this.predictions);
 			console.log(output);
+			this.prediction = this.predictions.indexOf(Math.max(...this.predictions));
 		});
 	}
-
-	// protected async predict(imageData: ImageData) {
-
-	// 	const pred = await tf.tidy(() => {
-
-	// 	  let img:any = tf.fromPixels(imageData, 1);
-	// 	  img = img.reshape([1, 28, 28, 1]);
-	// 	  img = tf.cast(img, 'float32');
-
-	// 	  const output = this.model.predict(img) as any;
-
-	// 	  this.predictions = Array.from(output.dataSync());
-	// 	});
-	// }
 }
