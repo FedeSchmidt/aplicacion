@@ -48,6 +48,9 @@ export class MnistComponent implements OnInit {
 	batch_check = true;
 	batch_size = 10;
 
+	img_src = '';
+	dataImg;
+
 	constructor() {}
 
 	ngOnInit() {
@@ -73,6 +76,11 @@ export class MnistComponent implements OnInit {
 		}
 
 		this.cx.clearRect(0, 0, 400, 300);
+
+		let cv2 = <HTMLCanvasElement>document.getElementById('canvas2');
+		let cx2 = cv2.getContext('2d');
+
+		cx2.clearRect(0, 0, 28, 28);
 	}
 
 	private startPosition(e) {
@@ -102,7 +110,7 @@ export class MnistComponent implements OnInit {
 		// this.cx.lineCap = 'round';
 		if (this.cx) {
 			//this.cx.fillStyle = 'black';
-			this.cx.lineWidth = 10;
+			this.cx.lineWidth = 20;
 			this.cx.lineCap = 'round';
 			//var w = window.innerWidth / 12;
 			var w = window.scrollX + this.canvas.getBoundingClientRect().left; // X
@@ -140,6 +148,11 @@ export class MnistComponent implements OnInit {
 		console.log('entrenar');
 		//this.createModel();
 		this.load().then(() => {
+			//const trainData = this.getTrainData();
+			//console.log(trainData.xs);
+			//const tensorData = trainData.xs.dataSync();
+
+			//console.log(tensorData);
 			this.model = this.createDenseModel();
 			this.train(this.model, false);
 		});
@@ -167,16 +180,16 @@ export class MnistComponent implements OnInit {
 	createDenseModel() {
 		const model = tf.sequential();
 		model.add(tf.layers.flatten({ inputShape: [ this.IMAGE_H, this.IMAGE_W, 1 ] }));
-		model.add(tf.layers.dense({ units: 42, activation: 'relu' }));
-		model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
+		model.add(tf.layers.dense({ units: 42, activation: 'sigmoid' }));
+		model.add(tf.layers.dense({ units: 10, activation: 'sigmoid' }));
 		return model;
 	}
 
 	async train(model, onIteration) {
-		const optimizer = 'rmsprop';
+		//const optimizer = 'rmsprop';
 
 		model.compile({
-			optimizer,
+			optimizer: tf.train.adam(0.001),
 			loss: 'categoricalCrossentropy',
 			metrics: [ 'accuracy' ]
 		});
@@ -199,6 +212,8 @@ export class MnistComponent implements OnInit {
 		const totalNumBatches = Math.ceil(trainData.xs.shape[0] * (1 - validationSplit) / batchSize) * trainEpochs;
 
 		let valAcc;
+		console.log(trainData.xs);
+		console.log(trainData.labels);
 		await model.fit(trainData.xs, trainData.labels, {
 			batchSize,
 			validationSplit,
@@ -283,6 +298,8 @@ export class MnistComponent implements OnInit {
 			img.src = this.MNIST_IMAGES_SPRITE_PATH;
 		});
 
+		//console.log(this.datasetImages);
+
 		const labelsRequest = fetch(this.MNIST_LABELS_PATH);
 		const [ imgResponse, labelsResponse ] = await Promise.all([ imgRequest, labelsRequest ]);
 
@@ -290,6 +307,8 @@ export class MnistComponent implements OnInit {
 
 		// Slice the the images and labels into train and test sets.
 		this.trainImages = this.datasetImages.slice(0, this.IMAGE_SIZE * this.NUM_TRAIN_ELEMENTS);
+
+		//console.log(this.trainImages);
 		this.testImages = this.datasetImages.slice(this.IMAGE_SIZE * this.NUM_TRAIN_ELEMENTS);
 		this.trainLabels = this.datasetLabels.slice(0, this.NUM_CLASSES * this.NUM_TRAIN_ELEMENTS);
 		this.testLabels = this.datasetLabels.slice(this.NUM_CLASSES * this.NUM_TRAIN_ELEMENTS);
@@ -303,6 +322,8 @@ export class MnistComponent implements OnInit {
 			1
 		]);
 		const labels = tf.tensor2d(this.trainLabels, [ this.trainLabels.length / this.NUM_CLASSES, this.NUM_CLASSES ]);
+		console.log(xs);
+		console.log(labels);
 		return { xs, labels };
 	}
 
@@ -328,24 +349,56 @@ export class MnistComponent implements OnInit {
 			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
 		}
 
-		let c1 = document.createElement('canvas');
-		let ctx1 = c1.getContext('2d');
-		c1.width = 28;
-		c1.height = 28;
+		//let c1 = document.createElement('canvas');
+		let canvas2 = <HTMLCanvasElement>document.getElementById('canvas2');
+		//let ctx1 = c1.getContext('2d');
+		//c1.width = 28;
+		//c1.height = 28;
+		let ctx1 = canvas2.getContext('2d');
 		ctx1.drawImage(this.canvas, 4, 4, 20, 20);
 		//document.getElementById('img').src = c1.toDataURL();
+		this.img_src = canvas2.toDataURL();
 		// document.getElementById('c').style.display = 'none';
 		//hidden = true
 
 		var imgData = ctx1.getImageData(0, 0, 28, 28);
+		console.log(imgData);
 		var imgBlack = [];
 		for (var i = 0; i < imgData.data.length; i += 4) {
 			if (imgData.data[i + 3] === 255) imgBlack.push(1);
 			else imgBlack.push(0);
 		}
 
-		var dataStr = JSON.stringify(imgData);
 		console.log(imgBlack);
+
+		var dataStr = JSON.stringify(imgData);
+
+		let imgR = tf.reshape(imgBlack, [ 28, 28, 1 ]).expandDims(0);
+		//imgR = tf.cast(imgR, 'float32');
+		console.log(imgR);
+	}
+
+	recogniseNumber() {
+		if (!this.cx) {
+			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+		}
+
+		var imageData = this.cx.getImageData(0, 0, 280, 280);
+		var tfImage = tf.browser.fromPixels(imageData, 1);
+
+		//Resize to 28X28
+		var tfResizedImage = tf.image.resizeBilinear(tfImage, [ 28, 28 ]);
+		//Since white is 255 black is 0 so need to revert the values
+		//so that white is 0 and black is 255
+		tfResizedImage = tf.cast(tfResizedImage, 'float32');
+		tfResizedImage = tf.abs(tfResizedImage.sub(tf.scalar(255))).div(tf.scalar(255));
+		tfResizedImage = tfResizedImage.reshape([ 28, 28, 1 ]).expandDims(0);
+
+		//Make another dimention as the model expects
+		console.log(tfResizedImage);
+		return tfResizedImage;
+		//predict(tfResizedImage);
 	}
 
 	getImage() {
@@ -359,21 +412,36 @@ export class MnistComponent implements OnInit {
 		c1.width = 28;
 		c1.height = 28;
 		ctx1.drawImage(this.canvas, 4, 4, 20, 20);
+		let imgData = ctx1.getImageData(0, 0, 28, 28);
 
-		var imgData = ctx1.getImageData(0, 0, 28, 28);
-		var imgBlack = [];
-		for (var i = 0; i < imgData.data.length; i += 4) {
-			if (imgData.data[i + 3] === 255) imgBlack.push(1);
-			else imgBlack.push(0);
-		}
+		// let canvas2 = <HTMLCanvasElement>document.getElementById('canvas2');
+		// let ctx1 = canvas2.getContext('2d');
+		// ctx1.drawImage(this.canvas, 4, 4, 20, 20);
+		// let imgData = ctx1.getImageData(0, 0, 28, 28);
 
-		return imgBlack;
+		// let c1 = document.createElement('canvas');
+		// let ctx1 = c1.getContext('2d');
+		// c1.width = 28;
+		// c1.height = 28;
+		// ctx1.drawImage(this.canvas, 4, 4, 20, 20);
+
+		// var imgData = ctx1.getImageData(0, 0, 28, 28);
+
+		return imgData;
+
+		// var imgBlack = [];
+		// for (var i = 0; i < imgData.data.length; i += 4) {
+		// 	if (imgData.data[i + 3] === 255) imgBlack.push(1);
+		// 	else imgBlack.push(0);
+		// }
+
+		// return imgBlack;
 	}
-	async predict() {
-		if (!this.cx) {
-			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
-		}
+	async predict2() {
+		// if (!this.cx) {
+		// 	this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+		// 	if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+		// }
 
 		const pred = await tf.tidy(() => {
 			// let imageData = this.cx.getImageData(0, 0, this.canvas.width, this.canvas.height);
@@ -383,16 +451,43 @@ export class MnistComponent implements OnInit {
 			// console.log(imgR);
 			// console.log(this.model);
 
-			let image = this.getImage();
+			//let image = this.getImage();
+			let image = this.recogniseNumber();
 			//let img = tf.browser.fromPixels(image, 1).expandDims(0);
-			let imgR = tf.reshape(image, [ 28, 28, 1 ]).expandDims(0);
-			imgR = tf.cast(imgR, 'float32');
+			// let imgR = tf.reshape(image, [ 28, 28, 1 ]).expandDims(0);
+			// imgR = tf.cast(imgR, 'float32');
 
-			const output = this.model.predict(imgR) as any;
+			const output = this.model.predict(image) as any;
 
 			this.predictions = Array.from(output.dataSync());
 			console.log(this.predictions);
 			console.log(output);
+			this.prediction = this.predictions.indexOf(Math.max(...this.predictions));
+		});
+	}
+	async predict() {
+		// if (!this.cx) {
+		// 	this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+		// 	if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+		// }
+
+		//let imageData = this.cx.getImageData(0, 0, 280, 280);
+		let imageData = this.getImage();
+
+		if (this.dataImg !== undefined) {
+			console.log(this.dataImg == imageData);
+		}
+		this.dataImg = imageData;
+
+		const pred = await tf.tidy(() => {
+			let img = tf.browser.fromPixels(imageData, 1);
+			img = img.reshape([ 28, 28, 1 ]).expandDims(0);
+			img = tf.cast(img, 'float32');
+
+			const output = this.model.predict(img) as any;
+
+			this.predictions = Array.from(output.dataSync());
+			console.log(this.predictions);
 			this.prediction = this.predictions.indexOf(Math.max(...this.predictions));
 		});
 	}

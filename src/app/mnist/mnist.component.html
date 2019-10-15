@@ -83,6 +83,7 @@
 <div class="row justify-content-center mt-2">
     <div class="col-10">
             <canvas id="canvas" width="280" height="280"></canvas>
+            <canvas id="canvas2" width="28" height="28"></canvas>
             <button type="button" class="btn btn-primary ml-1" (click)="clearCanvas()">Clear</button>
             <button type="button" class="btn btn-primary ml-1" (click)="predict()">Predict</button>
             <h5>Predicción: {{ prediction }}</h5>
@@ -92,7 +93,7 @@
 <div class="row justify-content-center mt-2">
     <div class="col-10">
         <button type="button" class="btn btn-primary mb-2" (click)="entrenar()">Entrenar!</button>
-        <img src="" id="img">
+        <img src={{img_src}} id="img">
         <div>
 
             <h5>Progreso: {{ progreso }} %</h5>
