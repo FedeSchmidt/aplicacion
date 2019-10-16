@@ -58,9 +58,6 @@ export class MnistComponent implements OnInit {
 		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
 		if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
 
-		console.log(this.canvas);
-		console.log(this.cx);
-
 		if (this.cx) {
 			// React to mouse events on the canvas, and mouseup on the entire document
 			this.canvas.addEventListener('mousedown', this.startPosition, false);
@@ -75,7 +72,7 @@ export class MnistComponent implements OnInit {
 			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
 		}
 
-		this.cx.clearRect(0, 0, 400, 300);
+		this.cx.clearRect(0, 0, 280, 280);
 
 		let cv2 = <HTMLCanvasElement>document.getElementById('canvas2');
 		let cx2 = cv2.getContext('2d');
@@ -110,7 +107,7 @@ export class MnistComponent implements OnInit {
 		// this.cx.lineCap = 'round';
 		if (this.cx) {
 			//this.cx.fillStyle = 'black';
-			this.cx.lineWidth = 20;
+			this.cx.lineWidth = 30;
 			this.cx.lineCap = 'round';
 			//var w = window.innerWidth / 12;
 			var w = window.scrollX + this.canvas.getBoundingClientRect().left; // X
@@ -158,50 +155,51 @@ export class MnistComponent implements OnInit {
 		});
 	}
 
-	newLayer() {
-		this.net.push(new Layer('Flatten', 0, 'ReLU'));
-	}
+	// newLayer() {
+	// 	this.net.push(new Layer('Flatten', 0, 'ReLU'));
+	// }
 
-	removeLayer(index) {
-		// delete this.net[index];
-		this.net.splice(index, 1);
-		console.log(this.net);
-	}
-	onChange(value, field, index) {
-		console.log(value);
-		if (field == 'units') {
-			this.net[index][field] = parseInt(value);
-		} else {
-			this.net[index][field] = value;
-		}
-		console.log(this.net);
-	}
+	// removeLayer(index) {
+	// 	// delete this.net[index];
+	// 	this.net.splice(index, 1);
+	// 	console.log(this.net);
+	// }
+	// onChange(value, field, index) {
+	// 	console.log(value);
+	// 	if (field == 'units') {
+	// 		this.net[index][field] = parseInt(value);
+	// 	} else {
+	// 		this.net[index][field] = value;
+	// 	}
+	// 	console.log(this.net);
+	// }
 
 	createDenseModel() {
 		const model = tf.sequential();
 		model.add(tf.layers.flatten({ inputShape: [ this.IMAGE_H, this.IMAGE_W, 1 ] }));
-		model.add(tf.layers.dense({ units: 42, activation: 'sigmoid' }));
-		model.add(tf.layers.dense({ units: 10, activation: 'sigmoid' }));
+		model.add(tf.layers.dense({ units: 42, activation: 'relu' }));
+		model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
 		return model;
 	}
 
 	async train(model, onIteration) {
 		//const optimizer = 'rmsprop';
 
+		//optimizer: tf.train.adam(0.001),
 		model.compile({
-			optimizer: tf.train.adam(0.001),
+			optimizer: tf.train.sgd(0.15),
 			loss: 'categoricalCrossentropy',
 			metrics: [ 'accuracy' ]
 		});
 
-		const batchSize = 320;
+		const batchSize = 64;
 
 		// Leave out the last 15% of the training data for validation, to monitor
 		// overfitting during training.
 		const validationSplit = 0.15;
 
 		// Get number of training epochs from the UI.
-		const trainEpochs = 10;
+		const trainEpochs = 30;
 
 		// We'll keep a buffer of loss and accuracy values over time.
 		let trainBatchCount = 0;
@@ -407,10 +405,10 @@ export class MnistComponent implements OnInit {
 			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
 		}
 
-		let c1 = document.createElement('canvas');
+		let c1 = <HTMLCanvasElement>document.getElementById('canvas2');
 		let ctx1 = c1.getContext('2d');
-		c1.width = 28;
-		c1.height = 28;
+		console.log(c1.width + '|||' + c1.height);
+
 		ctx1.drawImage(this.canvas, 4, 4, 20, 20);
 		let imgData = ctx1.getImageData(0, 0, 28, 28);
 

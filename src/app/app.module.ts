@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { LinearComponent } from './linear/linear.component';
 import { MnistComponent } from './mnist/mnist.component';
+import { ModelmakerComponent } from './modelmaker/modelmaker.component';
 
 const appRoutes: Routes = [
 	{ path: '', component: LinearComponent },
@@ -17,7 +18,7 @@ const appRoutes: Routes = [
 ];
 
 @NgModule({
-	declarations: [ AppComponent, LinearComponent, MnistComponent ],
+	declarations: [ AppComponent, LinearComponent, MnistComponent, ModelmakerComponent ],
 	imports: [
 		BrowserModule,
 		BrowserAnimationsModule,
