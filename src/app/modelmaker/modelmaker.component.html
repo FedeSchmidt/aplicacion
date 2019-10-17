@@ -1,6 +1,6 @@
 <div class="row justify-content-around">
     
-    <div class="col-3 border mt-1 generales">
+    <div class="col-3 mt-1 mb-1 generales">
         <h5>Parámetros Generales</h5>
         <div>
             <h6>Learning ratio</h6>
@@ -27,11 +27,21 @@
         </div>
         <div>
             <h6>Batch Size</h6>
-            <div>
+            <div class="input-batch">
 
                 <input type="checkbox" class="form-check-input" value="batch_size" [(ngModel)]="batch_check">
                 <input type="number" class="form-control " [(ngModel)]="batch_size">
             </div>
+        </div>
+        <div>
+            <h6>Regularización</h6>
+            <select name="regularizacion" id="" class="form-control regularizacion">
+                <option>Ninguno</option>
+                <option>L1</option>
+                <option>L2</option>
+            </select>
+            <input type="number" class="form-control regularizacion ml-1">
+            
         </div>
         
     </div>
@@ -43,8 +53,8 @@
                 <tr>
                     <th scope="col">#</th>
                     <th scope="col">Tipo</th>
-                    <th scope="col">Units</th>
-                    <th scope="col">Activation</th>
+                    <th scope="col">Cantidad</th>
+                    <th scope="col">Función</th>
                     <th scope="col">
                         <button type="button" class="btn btn-primary" (click)="newLayer()">Nueva Capa </button>
                     </th>

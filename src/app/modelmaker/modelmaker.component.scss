@@ -1,5 +1,6 @@
 .generales {
 	padding: 10px 15px;
+	border: none;
 
 	h5 {
 		text-align: center;
@@ -19,13 +20,60 @@
 	}
 
 	.form-control {
-		border: none;
-		border-bottom: 2px solid #ced4da;
-		border-radius: 0px;
-		background: #efefef;
+		// border: none;
+		border: 1px solid #f24333;
+		border-radius: 5px;
+		background: #f9f9f9;
+		box-shadow: none;
+	}
+
+	.form-control:focus {
+		outline: none !important;
+	}
+
+	.regularizacion {
+		display: inline-block;
+		width: 49%;
 	}
 }
 
-.net-table {
-	text-align: center;
+.row {
+	border-bottom: 2px solid #f24333;
+}
+
+.input-batch {
+	.form-check-input {
+		display: inline-block;
+		margin-top: 10px;
+		margin-left: 0;
+	}
+	.form-control {
+		width: 95%;
+		float: right;
+		margin-bottom: 5px;
+	}
+}
+
+table {
+	width: 100%;
+	table-layout: fixed;
+	padding: 10px 15px;
+	border: none;
+	margin: 0;
+	padding: 0px;
+
+	thead {
+		tr {
+			text-align: center;
+		}
+		th {
+			vertical-align: middle;
+		}
+	}
+
+	thead tr th:first-child,
+	tbody tr td:first-child {
+		width: 5%;
+		text-align: center;
+	}
 }
