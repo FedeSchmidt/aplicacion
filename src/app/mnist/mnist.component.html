@@ -1,20 +1,20 @@
-<!-- 
-<div class="row justify-content-center">
-    <div class="col-1"></div>
-    <div class="col-2 border mt-1 generales">
+<div class="row justify-content-around">
+    
+    <div class="col-3 mt-1 mb-1 generales">
         <h5>Parámetros Generales</h5>
         <div>
             <h6>Learning ratio</h6>
-            <input type="number" class="form-control" [(ngModel)]="learning_ratio">
+            <input type="number" step=".01" class="form-control" [(ngModel)]="learning_ratio">
         </div>
         <div>
-            <h6>Ciclos/Epochs</h6>
+            <h6>Epochs (Ciclos)</h6>
             <input type="number" class="form-control" name="epochs" [(ngModel)]="epochs">
         </div>
         <div>
-            <h6>Metrica</h6>
-            <select class="form-control" name="metrics" [(ngModel)]="metrics">
-                <option>Accuracy</option>
+            <h6>Métrica</h6>
+            <select class="form-control" name="metrics" [(ngModel)]="metric">
+                <option *ngFor="let metric of metricas">{{metric}}</option>
+                <!-- <option>Accuracy</option> -->
                 
             </select>
         </div>
@@ -22,31 +22,44 @@
         <div>
             <h6>Cost Function</h6>
             <select class="form-control" name="cost_function" [(ngModel)]="cost_function">
-                <option>Cross-Entropy</option>
+                    <option *ngFor="let loss of loss_functions">{{loss}}</option>
                 
             </select>
         </div>
         <div>
             <h6>Batch Size</h6>
-            <div>
+            <div class="input-batch">
 
                 <input type="checkbox" class="form-check-input" value="batch_size" [(ngModel)]="batch_check">
-                <input type="number" class="form-control" [(ngModel)]="batch_size">
+                <input type="number" class="form-control " [(ngModel)]="batch_size" [disabled]="!batch_check">
             </div>
         </div>
+        <div>
+            <h6>Regularización</h6>
+            <select name="regularizacion" id="" class="form-control regularizacion" [(ngModel)]="regularization">
+                <option>Ninguno</option>
+                <option>L1</option>
+                <option>L2</option>
+            </select>
+            <input type="number" step=".01" class="form-control regularizacion ml-1" [disabled]="regularization == 'Ninguno'" [(ngModel)]="regularization_ratio">
+            
+        </div>
+
         
     </div>
 
-    <div class="col-8">
+    <div class="col-7 table-responsive">
 
         <table id="net-table" class="table">
             <thead>
                 <tr>
                     <th scope="col">#</th>
                     <th scope="col">Tipo</th>
-                    <th scope="col">Units</th>
-                    <th scope="col">Activation</th>
-                    <th scope="col"></th>
+                    <th scope="col">Cantidad</th>
+                    <th scope="col">Función</th>
+                    <th scope="col">
+                        <button type="button" class="btn btn-primary" (click)="newLayer()">Nueva Capa </button>
+                    </th>
                 </tr>
             </thead>
             <tbody id="net-table-body">
@@ -64,6 +77,8 @@
                     </td>
                     <td>
                         <select class="form-control" (change)="onChange($event.target.value, 'activation', i)">
+                            <option>Sigmoid</option>
+                            <option>Linear</option>
                             <option>ReLU</option>
                             <option>Softmax</option>
                         </select>
@@ -75,12 +90,34 @@
                 
             </tbody>
         </table>
-        <button type="button" class="btn btn-primary" (click)="newLayer()">Nueva Capa </button>
+        
     </div>
-    <div class="col-1"></div>
-</div> -->
+    
+    
+</div>
 
-<app-modelmaker></app-modelmaker>
+<div class="row justify-content-around entrenamiento">
+    <div class="col-7">
+        
+
+        <button type="button" class="btn btn-primary btn-entrenar" (click)="entrenar()" [disabled]="entrenando">Entrenar!</button>
+        <div [ngClass]="{'progress train-bar' : true, 'progress-opaco': !entrenando}">
+            
+            <div class="progress-bar progress-bar-striped" role="progressbar" [style.width]="progreso + '%' " aria-valuemin="0" aria-valuemax="100"></div>
+            
+                <span>{{progreso}} %</span>
+            
+          </div>
+    </div>
+    <div class="col-3">
+        <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !entrenando}">
+            <!-- <h5>Validation Accuracy final: {{ validation_accuracy }} %</h5> -->
+            <h5>Test Accuracy final: {{ test_accuracy }}</h5>
+        </div>
+    </div>
+</div>
+
+<app-codigo></app-codigo>
 
 <div class="row justify-content-center mt-2">
     <div class="col-10">
@@ -92,16 +129,3 @@
     </div>
 </div>
 
-<div class="row justify-content-center mt-2">
-    <div class="col-10">
-        <button type="button" class="btn btn-primary mb-2" (click)="entrenar()">Entrenar!</button>
-        <img src={{img_src}} id="img">
-        <div>
-
-            <h5>Progreso: {{ progreso }} %</h5>
-            <h5>Validation Accuracy final: {{ validation_accuracy }} %</h5>
-            <h5>Test Accuracy final: {{ test_accuracy }} %</h5>
-        </div>
-        
-    </div>
-</div>

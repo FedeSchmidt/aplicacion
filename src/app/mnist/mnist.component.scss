@@ -4,3 +4,142 @@
 
 	background: white;
 }
+.generales {
+	padding: 10px 15px;
+	border: none;
+
+	h5 {
+		text-align: center;
+		text-decoration: underline;
+		padding: 0px 0px;
+		margin: 0px;
+		margin-bottom: 10px;
+	}
+
+	h6 {
+		padding: 5px 0px;
+		margin: 0px;
+	}
+
+	p {
+		text-align: justify;
+	}
+
+	.form-control {
+		// border: none;
+		border: 1px solid #f24333;
+		border-radius: 5px;
+		background: #f9f9f9;
+		box-shadow: none;
+	}
+
+	.form-control:focus {
+		outline: none !important;
+	}
+
+	.regularizacion {
+		display: inline-block;
+		width: 49%;
+	}
+
+	input[type="number"]:disabled {
+		opacity: 0.4;
+	}
+}
+
+.row {
+	border-bottom: 2px solid #f24333;
+	margin: 0px !important;
+}
+
+.input-batch {
+	.form-check-input {
+		display: inline-block;
+		margin-top: 10px;
+		margin-left: 0;
+	}
+	.form-control {
+		width: 95%;
+		float: right;
+		margin-bottom: 5px;
+	}
+}
+
+table {
+	width: 100%;
+	table-layout: fixed;
+	padding: 10px 15px;
+	border: none;
+	margin: 0;
+	padding: 0px;
+
+	thead {
+		tr {
+			text-align: center;
+		}
+		th {
+			vertical-align: middle;
+		}
+	}
+
+	thead tr th:first-child,
+	tbody tr td:first-child {
+		width: 5%;
+		text-align: center;
+	}
+}
+
+.entrenamiento {
+	align-items: center;
+	height: 100%;
+	.btn-entrenar {
+		display: inline-block;
+		margin: 10px 10px 10px 0px;
+	}
+
+	.btn-entrenar: disabled {
+		opacity: 0.4;
+	}
+	.train-bar {
+		width: 85%;
+		display: inline-block;
+		height: 38px;
+		vertical-align: middle;
+
+		align-items: center;
+
+		span {
+			position: absolute;
+			top: 10px;
+			z-index: 2;
+			font-size: x-large;
+			color: black;
+			text-align: center;
+			width: 85%;
+		}
+	}
+
+	.progress-opaco {
+		opacity: 0.4;
+	}
+
+	.progress-bar-striped {
+		width: 0%;
+		height: 38px;
+		text-align: center;
+		color: black;
+		vertical-align: middle;
+		font-size: x-large;
+	}
+
+	.datos-accuracy {
+		margin: 20px 0px;
+	}
+	.progreso {
+		text-align: center;
+		vertical-align: middle;
+		font-size: x-large;
+		color: black;
+		z-index: -1000;
+	}
+}

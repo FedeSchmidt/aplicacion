@@ -8,6 +8,9 @@ import { Layer } from './../models/layer';
 	styleUrls: [ './mnist.component.scss' ]
 })
 export class MnistComponent implements OnInit {
+	MNIST_IMAGES_SPRITE_PATH = 'https://storage.googleapis.com/learnjs-data/model-builder/mnist_images.png';
+	MNIST_LABELS_PATH = 'https://storage.googleapis.com/learnjs-data/model-builder/mnist_labels_uint8';
+
 	IMAGE_H = 28;
 	IMAGE_W = 28;
 	IMAGE_SIZE = 784;
@@ -21,12 +24,10 @@ export class MnistComponent implements OnInit {
 	testImages: any;
 	trainLabels: any;
 	testLabels: any;
-	MNIST_IMAGES_SPRITE_PATH = 'https://storage.googleapis.com/learnjs-data/model-builder/mnist_images.png';
-	MNIST_LABELS_PATH = 'https://storage.googleapis.com/learnjs-data/model-builder/mnist_labels_uint8';
 
 	progreso = 0;
 	validation_accuracy = 0;
-	test_accuracy = 0;
+	test_accuracy = '---';
 
 	model: any;
 	net = [];
@@ -43,10 +44,19 @@ export class MnistComponent implements OnInit {
 	// parámetros generales
 	learning_ratio = 0.1;
 	epochs = 10;
-	metrics = 'accuracy';
-	cost_function = 'Cross Entropy';
+	//metrics = 'accuracy';
 	batch_check = true;
 	batch_size = 10;
+
+	entrenando = false;
+
+	metricas = [ 'accuracy', 'mean_squared_error' ];
+	metric = 'accuracy';
+	loss_functions = [ 'mean_squared_error', 'categorical_crossentropy' ];
+	cost_function = 'categorical_crossentropy';
+
+	regularization = 'Ninguno';
+	regularization_ratio = 0.1;
 
 	img_src = '';
 	dataImg;
@@ -66,66 +76,15 @@ export class MnistComponent implements OnInit {
 		}
 	}
 
-	clearCanvas() {
-		if (this.cx == undefined) {
-			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
-		}
-
-		this.cx.clearRect(0, 0, 280, 280);
-
-		let cv2 = <HTMLCanvasElement>document.getElementById('canvas2');
-		let cx2 = cv2.getContext('2d');
-
-		cx2.clearRect(0, 0, 28, 28);
+	// //de la red.
+	createDenseModel() {
+		const model = tf.sequential();
+		model.add(tf.layers.flatten({ inputShape: [ this.IMAGE_H, this.IMAGE_W, 1 ] }));
+		model.add(tf.layers.dense({ units: 42, activation: 'relu' }));
+		model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
+		return model;
 	}
 
-	private startPosition(e) {
-		this.painting = true;
-		//this.draw(e);
-	}
-
-	private finishedPosition() {
-		this.painting = false;
-
-		if (this.cx) {
-			this.cx.beginPath();
-		} else {
-			console.log('cerrando');
-			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
-			this.cx.closePath();
-		}
-	}
-
-	private draw(e) {
-		//console.log(e);
-		if (!this.painting) return;
-
-		//console.log(this.ctx);
-		// this.cx.lineWidth = 10;
-		// this.cx.lineCap = 'round';
-		if (this.cx) {
-			//this.cx.fillStyle = 'black';
-			this.cx.lineWidth = 30;
-			this.cx.lineCap = 'round';
-			//var w = window.innerWidth / 12;
-			var w = window.scrollX + this.canvas.getBoundingClientRect().left; // X
-
-			var z = window.scrollY + this.canvas.getBoundingClientRect().top; // Y
-			this.cx.lineTo(e.clientX - w, e.clientY - z);
-			this.cx.stroke();
-			this.cx.beginPath();
-			this.cx.moveTo(e.clientX - w, e.clientY - z);
-		} else {
-			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
-
-			this.canvas.addEventListener('mousedown', this.startPosition, false);
-			this.canvas.addEventListener('mousemove', this.draw, false);
-			this.canvas.addEventListener('mouseup', this.finishedPosition, false);
-		}
-	}
 	createModel() {
 		const model = tf.sequential();
 
@@ -143,6 +102,7 @@ export class MnistComponent implements OnInit {
 
 	entrenar() {
 		console.log('entrenar');
+		this.entrenando = true;
 		//this.createModel();
 		this.load().then(() => {
 			//const trainData = this.getTrainData();
@@ -153,53 +113,29 @@ export class MnistComponent implements OnInit {
 			this.model = this.createDenseModel();
 			this.train(this.model, false);
 		});
-	}
 
-	// newLayer() {
-	// 	this.net.push(new Layer('Flatten', 0, 'ReLU'));
-	// }
-
-	// removeLayer(index) {
-	// 	// delete this.net[index];
-	// 	this.net.splice(index, 1);
-	// 	console.log(this.net);
-	// }
-	// onChange(value, field, index) {
-	// 	console.log(value);
-	// 	if (field == 'units') {
-	// 		this.net[index][field] = parseInt(value);
-	// 	} else {
-	// 		this.net[index][field] = value;
-	// 	}
-	// 	console.log(this.net);
-	// }
-
-	createDenseModel() {
-		const model = tf.sequential();
-		model.add(tf.layers.flatten({ inputShape: [ this.IMAGE_H, this.IMAGE_W, 1 ] }));
-		model.add(tf.layers.dense({ units: 42, activation: 'relu' }));
-		model.add(tf.layers.dense({ units: 10, activation: 'softmax' }));
-		return model;
+		this.entrenando = true;
 	}
 
 	async train(model, onIteration) {
 		//const optimizer = 'rmsprop';
 
 		//optimizer: tf.train.adam(0.001),
+		this.test_accuracy = 'Calculando...';
 		model.compile({
 			optimizer: tf.train.sgd(0.15),
 			loss: 'categoricalCrossentropy',
 			metrics: [ 'accuracy' ]
 		});
 
-		const batchSize = 64;
+		const batchSize = 320;
 
 		// Leave out the last 15% of the training data for validation, to monitor
 		// overfitting during training.
 		const validationSplit = 0.15;
 
 		// Get number of training epochs from the UI.
-		const trainEpochs = 30;
+		const trainEpochs = 5;
 
 		// We'll keep a buffer of loss and accuracy values over time.
 		let trainBatchCount = 0;
@@ -210,8 +146,7 @@ export class MnistComponent implements OnInit {
 		const totalNumBatches = Math.ceil(trainData.xs.shape[0] * (1 - validationSplit) / batchSize) * trainEpochs;
 
 		let valAcc;
-		console.log(trainData.xs);
-		console.log(trainData.labels);
+
 		await model.fit(trainData.xs, trainData.labels, {
 			batchSize,
 			validationSplit,
@@ -248,7 +183,8 @@ export class MnistComponent implements OnInit {
 		const testAccPercent = testResult[1].dataSync()[0] * 100;
 		const finalValAccPercent = valAcc * 100;
 		this.validation_accuracy = parseFloat(finalValAccPercent.toFixed(2));
-		this.test_accuracy = parseFloat(testAccPercent.toFixed(2));
+		//this.test_accuracy = parseFloat(testAccPercent.toFixed(2));
+		this.test_accuracy = testAccPercent.toFixed(2) + ' %';
 		console.log(
 			`Final validation accuracy: ${finalValAccPercent.toFixed(1)}%; ` +
 				`Final test accuracy: ${testAccPercent.toFixed(1)}%` +
@@ -339,6 +275,86 @@ export class MnistComponent implements OnInit {
 			labels = labels.slice([ 0, 0 ], [ numExamples, this.NUM_CLASSES ]);
 		}
 		return { xs, labels };
+	}
+
+	clearCanvas() {
+		if (this.cx == undefined) {
+			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+		}
+
+		this.cx.clearRect(0, 0, 280, 280);
+
+		let cv2 = <HTMLCanvasElement>document.getElementById('canvas2');
+		let cx2 = cv2.getContext('2d');
+
+		cx2.clearRect(0, 0, 28, 28);
+	}
+
+	private startPosition(e) {
+		this.painting = true;
+		//this.draw(e);
+	}
+
+	private finishedPosition() {
+		this.painting = false;
+
+		if (this.cx) {
+			this.cx.beginPath();
+		} else {
+			console.log('cerrando');
+			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+			this.cx.closePath();
+		}
+	}
+
+	private draw(e) {
+		//console.log(e);
+		if (!this.painting) return;
+
+		//console.log(this.ctx);
+		// this.cx.lineWidth = 10;
+		// this.cx.lineCap = 'round';
+		if (this.cx) {
+			//this.cx.fillStyle = 'black';
+			this.cx.lineWidth = 30;
+			this.cx.lineCap = 'round';
+			//var w = window.innerWidth / 12;
+			var w = window.scrollX + this.canvas.getBoundingClientRect().left; // X
+
+			var z = window.scrollY + this.canvas.getBoundingClientRect().top; // Y
+			this.cx.lineTo(e.clientX - w, e.clientY - z);
+			this.cx.stroke();
+			this.cx.beginPath();
+			this.cx.moveTo(e.clientX - w, e.clientY - z);
+		} else {
+			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+
+			this.canvas.addEventListener('mousedown', this.startPosition, false);
+			this.canvas.addEventListener('mousemove', this.draw, false);
+			this.canvas.addEventListener('mouseup', this.finishedPosition, false);
+		}
+	}
+
+	newLayer() {
+		this.net.push(new Layer('Flatten', 0, 'ReLU'));
+	}
+
+	removeLayer(index) {
+		// delete this.net[index];
+		this.net.splice(index, 1);
+		console.log(this.net);
+	}
+	onChange(value, field, index) {
+		console.log(value);
+		if (field == 'units') {
+			this.net[index][field] = parseInt(value);
+		} else {
+			this.net[index][field] = value;
+		}
+		console.log(this.net);
 	}
 
 	mostrar() {
