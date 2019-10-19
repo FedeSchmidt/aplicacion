@@ -24,11 +24,11 @@ export class ModelmakerComponent implements OnInit {
 	constructor() {}
 
 	ngOnInit() {
-		this.net.push(new Layer('Flatten', 0, 'ReLU'));
+		// this.net.push(new Layer('Flatten', 0, 'ReLU'));
 	}
 
 	newLayer() {
-		this.net.push(new Layer('Flatten', 0, 'ReLU'));
+		// this.net.push(new Layer('Flatten', 0, 'ReLU'));
 	}
 
 	removeLayer(index) {

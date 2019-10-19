@@ -10,7 +10,8 @@
 
 	h5 {
 		text-align: center;
-		text-decoration: underline;
+		text-transform: uppercase;
+		// text-decoration: underline;
 		padding: 0px 0px;
 		margin: 0px;
 		margin-bottom: 10px;
@@ -68,24 +69,42 @@
 table {
 	width: 100%;
 	table-layout: fixed;
-	padding: 10px 15px;
+	//padding: 10px 15px;
 	border: none;
-	margin: 0;
-	padding: 0px;
+	// margin: 0;
+	// padding: 0px;
 
-	thead {
-		tr {
-			text-align: center;
-		}
-		th {
-			vertical-align: middle;
-		}
+	tr {
+		text-align: center;
+	}
+	th,
+	td {
+		vertical-align: middle;
+	}
+
+	th,
+	td {
+		border-top: none;
+		padding: 10px 10px;
 	}
 
 	thead tr th:first-child,
 	tbody tr td:first-child {
 		width: 5%;
-		text-align: center;
+	}
+
+	thead tr th:last-child,
+	tbody tr td:last-child {
+		width: 20%;
+	}
+
+	.disabled_layer {
+		opacity: 0.7;
+	}
+
+	.fa-times:hover {
+		color: red;
+		cursor: pointer;
 	}
 }
 
@@ -141,5 +160,41 @@ table {
 		font-size: x-large;
 		color: black;
 		z-index: -1000;
+	}
+}
+.codigo {
+	text-align: center;
+	#model-code {
+		margin: 10px 0px;
+		padding: 30px;
+		// overflow: auto;
+
+		p {
+			white-space: pre;
+		}
+	}
+	#compile-code {
+		margin: 10px 0px;
+		border-right: 2px solid #bdbebf;
+		border-left: 2px solid #bdbebf;
+		padding: 30px;
+
+		p {
+			white-space: pre;
+		}
+	}
+	#train-code {
+		margin: 10px 0px;
+		padding: 30px;
+
+		p {
+			white-space: pre;
+		}
+	}
+
+	p {
+		margin: 0;
+		text-align: start;
+		font-style: italic;
 	}
 }

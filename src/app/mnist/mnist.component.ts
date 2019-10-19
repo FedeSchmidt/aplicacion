@@ -25,12 +25,13 @@ export class MnistComponent implements OnInit {
 	trainLabels: any;
 	testLabels: any;
 
+	net = [];
+
 	progreso = 0;
 	validation_accuracy = 0;
 	test_accuracy = '---';
 
 	model: any;
-	net = [];
 	arr = [];
 	predictions: any;
 	prediction: any;
@@ -58,13 +59,23 @@ export class MnistComponent implements OnInit {
 	regularization = 'Ninguno';
 	regularization_ratio = 0.1;
 
+	//Nodos
+	tipos_capas = [ 'Flatten', 'Dense' ];
+	activations = [ 'Sigmoid', 'Linear', 'ReLU', 'Softmax' ];
+
+	//codigo equivalente
+	model_code = [];
+	train_code = [];
+	compile_code = [];
+
 	img_src = '';
 	dataImg;
 
 	constructor() {}
 
 	ngOnInit() {
-		this.net.push(new Layer('Flatten', 0, 'ReLU'));
+		this.armarRedBase();
+		//this.net.push(new Layer('Flatten', 0, 'ReLU'));
 		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
 		if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
 
@@ -76,6 +87,45 @@ export class MnistComponent implements OnInit {
 		}
 	}
 
+	armarRedBase() {
+		this.net.push(new Layer('Flatten', 784, '-', [ this.IMAGE_H, this.IMAGE_W, 1 ]));
+		this.net.push(new Layer('Dense', 42, 'ReLU', null));
+		this.net.push(new Layer('Dense', 10, 'Softmax', null));
+
+		this.model_code.push('createModel() {');
+		this.model_code.push('\tmodel = tf.sequential();');
+		this.model_code.push('\tmodel.add( tf.layers.flatten( { inputShape: [ 28, 28, 1] } ) );');
+		for (let i = 1; i < this.net.length; i++) {
+			this.model_code.push(
+				this.armarStringCapa(
+					this.net[i].type.toLowerCase(),
+					this.net[i].units.toString().toLowerCase(),
+					this.net[i].activation.toLowerCase()
+				)
+			);
+		}
+
+		this.model_code.push('\treturn model;');
+		this.model_code.push('}');
+
+		this.compile_code.push('model.compile( {');
+		this.compile_code.push('\toptimizer: tf.train.sgd(0.15),');
+
+		this.train_code.push('train(){');
+
+		this.actualizarCodigo();
+		this.compile_code.push('} );');
+		this.train_code.push('}');
+	}
+
+	actualizarCodigo() {
+		this.compile_code.splice(2, 1, "\tloss: '" + this.cost_function + "',");
+		this.compile_code.splice(3, 1, "\tmetrics: [ '" + this.metric + "' ]");
+
+		if (!this.batch_check) this.train_code.splice(1, 1, '\tbatchSize = ' + 32 + ';');
+		else this.train_code.splice(1, 1, '\tbatchSize = ' + this.batch_size + ';');
+		this.train_code.splice(2, 1, '\tepochs = ' + this.epochs + ';');
+	}
 	// //de la red.
 	createDenseModel() {
 		const model = tf.sequential();
@@ -339,7 +389,7 @@ export class MnistComponent implements OnInit {
 	}
 
 	newLayer() {
-		this.net.push(new Layer('Flatten', 0, 'ReLU'));
+		this.net.push(new Layer('Flatten', 0, 'ReLU', null));
 	}
 
 	removeLayer(index) {
@@ -348,15 +398,28 @@ export class MnistComponent implements OnInit {
 		console.log(this.net);
 	}
 	onChange(value, field, index) {
+		console.log(index);
+		console.log(field);
 		console.log(value);
 		if (field == 'units') {
 			this.net[index][field] = parseInt(value);
 		} else {
 			this.net[index][field] = value;
 		}
+
 		console.log(this.net);
+		let label = this.armarStringCapa(
+			this.net[index].type.toLowerCase(),
+			this.net[index].units.toString().toLowerCase(),
+			this.net[index].activation.toLowerCase()
+		);
+		this.model_code[index + 2] = label;
+		console.log(label);
 	}
 
+	armarStringCapa(tipo, units, activacion) {
+		return '\tmodel.add( tf.layers.' + tipo + '( { units: ' + units + ", activation: '" + activacion + "' } ) );";
+	}
 	mostrar() {
 		if (!this.cx) {
 			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
