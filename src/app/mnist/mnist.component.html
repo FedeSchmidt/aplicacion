@@ -44,10 +44,9 @@
             <input type="number" step=".01" class="form-control regularizacion ml-1" [disabled]="regularization == 'Ninguno'" [(ngModel)]="regularization_ratio">
             
         </div>
-        <div class="save_get">
-                <button type="button" class="btn btn-primary boton" (click)="guardarModelo()">guardar modelo</button>
-                <button type="button" class="btn btn-primary boton" (click)="recuperarModelo()">get modelo</button>
-        </div>
+        
+                <button type="button" class="btn btn-primary boton boton-cargar" (click)="recuperarModelo()">Cargar Modelo</button>
+        
 
         
     </div>
@@ -98,10 +97,10 @@
 </div>
 
 <div class="row justify-content-around entrenamiento">
-    <div class="col-7">
+    <div class="col-11">
         
 
-        <button type="button" class="btn btn-primary btn-entrenar boton" (click)="entrenar()" [disabled]="entrenando">Entrenar!</button>
+        <button type="button" class="btn btn-primary btn-entrenar boton" (click)="entrenar()" [disabled]="entrenando">¡Entrenar!</button>
         <div [ngClass]="{'progress train-bar' : true, 'progress-opaco': !entrenando}">
             
             <div class="progress-bar progress-bar-striped bg-success" role="progressbar" [style.width]="progreso + '%' " aria-valuemin="0" aria-valuemax="100"></div>
@@ -109,13 +108,15 @@
                 <span>{{progreso}} %</span>
             
           </div>
+          <button type="button" class="btn btn-primary boton boton-guardar" (click)="guardarModelo()" [disabled]="progreso != 100">Guardar</button>
+          <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !entrenando}">
+              <!-- <h5>Validation Accuracy final: {{ validation_accuracy }} %</h5> -->
+              <h5>Accuracy (Conjunto de entrenamiento): {{ trainset_accuracy }}</h5>
+              <h5>Accuracy (Conjunto de test): {{ test_accuracy }}</h5>
+            </div>
     </div>
-    <div class="col-3">
-        <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !entrenando}">
-            <!-- <h5>Validation Accuracy final: {{ validation_accuracy }} %</h5> -->
-            <h5>Test Accuracy final: {{ test_accuracy }}</h5>
-        </div>
-    </div>
+    <!-- <div class="col-3">
+    </div> -->
 </div>
 
 <!-- código equivalente -->

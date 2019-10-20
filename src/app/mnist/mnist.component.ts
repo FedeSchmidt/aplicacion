@@ -31,6 +31,7 @@ export class MnistComponent implements OnInit {
 	progreso = 0;
 	validation_accuracy = 0;
 	test_accuracy = '---';
+	trainset_accuracy = '---';
 
 	model: any;
 	arr = [];
@@ -112,7 +113,6 @@ export class MnistComponent implements OnInit {
 	recuperarModelo() {
 		let object = localStorage.getItem('neural_model_IA');
 		let datos = JSON.parse(object);
-		console.log(datos);
 		this.learning_ratio = datos.learning_ratio;
 		this.epochs = datos.epochs;
 		this.batch_check = datos.batch_check;
@@ -128,36 +128,11 @@ export class MnistComponent implements OnInit {
 		this.net.push(new Layer('Dense', 42, 'ReLU', null));
 		this.net.push(new Layer('Dense', 10, 'Softmax', null));
 
-		// this.model_code.push('createModel() {');
-		// this.model_code.push('\tmodel = tf.sequential();');
-		// this.model_code.push('\tmodel.add( tf.layers.flatten( { inputShape: [ 28, 28, 1] } ) );');
-		// for (let i = 1; i < this.net.length; i++) {
-		// 	this.model_code.push(
-		// 		this.armarStringCapa(
-		// 			this.net[i].type.toLowerCase(),
-		// 			this.net[i].units.toString().toLowerCase(),
-		// 			this.net[i].activation.toLowerCase()
-		// 		)
-		// 	);
-		// }
-		// this.model_code.push('\treturn model;');
-		// this.model_code.push('}');
-
 		this.actualizarCodigo1();
 
-		this.compile_code.push('model.compile( {');
-		this.compile_code.push('\toptimizer: tf.train.sgd(0.15),');
-
-		this.train_code.push('train(){');
-
 		this.actualizarCodigo();
-		this.compile_code.push('} );');
-		// this.train_code.push('}');
 	}
 
-	// armarStringCapa(tipo, units, activacion) {
-	// 	return '\tmodel.add( tf.layers.' + tipo + '( { units: ' + units + ", activation: '" + activacion + "' } ) );";
-	// }
 	actualizarCodigo1() {
 		this.model_code = [];
 		this.model_code.push('createModel() {');
@@ -175,10 +150,23 @@ export class MnistComponent implements OnInit {
 		this.model_code.push('\treturn model;');
 		this.model_code.push('}');
 	}
+
 	actualizarCodigo() {
+		this.actualizarCodigo2();
+		this.actualizarCodigo3();
+	}
+
+	actualizarCodigo2() {
+		this.compile_code = [];
+		this.compile_code.push('model.compile( {');
+		this.compile_code.push('\toptimizer: tf.train.sgd(' + this.learning_ratio + '),');
 		this.compile_code.splice(2, 1, "\tloss: '" + this.cost_function + "',");
 		this.compile_code.splice(3, 1, "\tmetrics: [ '" + this.metric + "' ]");
-
+		this.compile_code.push('} );');
+	}
+	actualizarCodigo3() {
+		this.train_code = [];
+		this.train_code.push('train(){');
 		if (!this.batch_check) this.train_code.splice(1, 1, '\tbatchSize = ' + 32 + ';');
 		else this.train_code.splice(1, 1, '\tbatchSize = ' + this.batch_size + ';');
 		this.train_code.splice(2, 1, '\ttrainEpochs = ' + this.epochs + ';');
@@ -233,31 +221,32 @@ export class MnistComponent implements OnInit {
 
 			//console.log(tensorData);
 			this.model = this.createDenseModel();
-			this.train(this.model, false);
+			this.train();
 		});
 
 		this.entrenando = true;
 	}
 
-	async train(model, onIteration) {
+	async train() {
 		//const optimizer = 'rmsprop';
 
 		//optimizer: tf.train.adam(0.001),
 		this.test_accuracy = 'Calculando...';
-		model.compile({
-			optimizer: tf.train.sgd(0.15),
+		this.trainset_accuracy = 'Calculando...';
+		this.model.compile({
+			optimizer: tf.train.sgd(this.learning_ratio),
 			loss: 'categoricalCrossentropy',
 			metrics: [ 'accuracy' ]
 		});
 
-		const batchSize = 320;
+		const batchSize = this.batch_check ? this.batch_size : 32;
 
 		// Leave out the last 15% of the training data for validation, to monitor
 		// overfitting during training.
 		const validationSplit = 0.15;
 
 		// Get number of training epochs from the UI.
-		const trainEpochs = 5;
+		const trainEpochs = this.epochs;
 
 		// We'll keep a buffer of loss and accuracy values over time.
 		let trainBatchCount = 0;
@@ -268,8 +257,9 @@ export class MnistComponent implements OnInit {
 		const totalNumBatches = Math.ceil(trainData.xs.shape[0] * (1 - validationSplit) / batchSize) * trainEpochs;
 
 		let valAcc;
+		let trainsetAcc;
 
-		await model.fit(trainData.xs, trainData.labels, {
+		await this.model.fit(trainData.xs, trainData.labels, {
 			batchSize,
 			validationSplit,
 			epochs: trainEpochs,
@@ -284,37 +274,36 @@ export class MnistComponent implements OnInit {
 					);
 					//ui.plotLoss(trainBatchCount, logs.loss, 'train');
 					//ui.plotAccuracy(trainBatchCount, logs.acc, 'train');
-					if (onIteration && batch % 10 === 0) {
-						onIteration('onBatchEnd', batch, logs);
-					}
+
 					await tf.nextFrame();
 				},
 				onEpochEnd: async (epoch, logs) => {
 					valAcc = logs.val_acc;
+					trainsetAcc = logs.acc;
 					// ui.plotLoss(trainBatchCount, logs.val_loss, 'validation');
 					// ui.plotAccuracy(trainBatchCount, logs.val_acc, 'validation');
-					if (onIteration) {
-						onIteration('onEpochEnd', epoch, logs);
-					}
+
 					await tf.nextFrame();
 				}
 			}
 		});
 
-		const testResult = model.evaluate(testData.xs, testData.labels);
+		const testResult = this.model.evaluate(testData.xs, testData.labels);
 		const testAccPercent = testResult[1].dataSync()[0] * 100;
 		const finalValAccPercent = valAcc * 100;
+		const finalTrainsetAccPercent = trainsetAcc * 100;
 		this.validation_accuracy = parseFloat(finalValAccPercent.toFixed(2));
-		//this.test_accuracy = parseFloat(testAccPercent.toFixed(2));
 		this.test_accuracy = testAccPercent.toFixed(2) + ' %';
+		this.trainset_accuracy = finalTrainsetAccPercent.toFixed(2) + '%';
 		console.log(
-			`Final validation accuracy: ${finalValAccPercent.toFixed(1)}%; ` +
+			`Final train set accuracy: ${finalTrainsetAccPercent.toFixed(1)}%; ` +
+				`Final validation accuracy: ${finalValAccPercent.toFixed(1)}%; ` +
 				`Final test accuracy: ${testAccPercent.toFixed(1)}%` +
 				`Test result: ${testResult}`
 		);
 
 		// await model.save('localstorage://my-model').then(console.log('modelo guardado'));
-		await model.save('indexeddb://my-model');
+		//await this.model.save('indexeddb://my-model');
 		// localStorage.setItem('modelo', JSON.stringify(model));
 		// console.log(model);
 	}
@@ -476,23 +465,24 @@ export class MnistComponent implements OnInit {
 		console.log(this.net);
 	}
 	onChange(value, field, index) {
-		console.log(index);
-		console.log(field);
-		console.log(value);
+		// console.log(index);
+		// console.log(field);
+		// console.log(value);
 		if (field == 'units') {
 			this.net[index][field] = parseInt(value);
 		} else {
 			this.net[index][field] = value;
 		}
 
-		console.log(this.net);
-		let label = this.armarStringCapa(
-			this.net[index].type.toLowerCase(),
-			this.net[index].units.toString().toLowerCase(),
-			this.net[index].activation.toLowerCase()
-		);
-		this.model_code[index + 2] = label;
-		console.log(label);
+		// console.log(this.net);
+		// let label = this.armarStringCapa(
+		// 	this.net[index].type.toLowerCase(),
+		// 	this.net[index].units.toString().toLowerCase(),
+		// 	this.net[index].activation.toLowerCase()
+		// );
+		// this.model_code[index + 2] = label;
+		// console.log(label);
+		this.actualizarCodigo1();
 	}
 
 	armarStringCapa(tipo, units, activacion) {
