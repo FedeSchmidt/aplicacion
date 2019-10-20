@@ -11,15 +11,23 @@ import { LinearComponent } from './linear/linear.component';
 import { MnistComponent } from './mnist/mnist.component';
 import { ModelmakerComponent } from './modelmaker/modelmaker.component';
 import { CodigoComponent } from './codigo/codigo.component';
+import { NavbarComponent } from './navbar/navbar.component';
 
 const appRoutes: Routes = [
-	{ path: '', component: LinearComponent },
-	{ path: 'linear', component: LinearComponent },
+	{ path: '', component: MnistComponent },
+	// { path: 'linear', component: LinearComponent },
 	{ path: 'mnist', component: MnistComponent }
 ];
 
 @NgModule({
-	declarations: [ AppComponent, LinearComponent, MnistComponent, ModelmakerComponent, CodigoComponent ],
+	declarations: [
+		AppComponent,
+		LinearComponent,
+		MnistComponent,
+		ModelmakerComponent,
+		CodigoComponent,
+		NavbarComponent
+	],
 	imports: [
 		BrowserModule,
 		BrowserAnimationsModule,

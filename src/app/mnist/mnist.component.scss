@@ -4,6 +4,13 @@
 
 	background: white;
 }
+
+.boton {
+	background-color: #05668d;
+	border-color: #05668d;
+	box-shadow: none;
+}
+
 .generales {
 	padding: 10px 15px;
 	border: none;
@@ -26,18 +33,6 @@
 		text-align: justify;
 	}
 
-	.form-control {
-		// border: none;
-		border: 1px solid #f24333;
-		border-radius: 5px;
-		background: #f9f9f9;
-		box-shadow: none;
-	}
-
-	.form-control:focus {
-		outline: none !important;
-	}
-
 	.regularizacion {
 		display: inline-block;
 		width: 49%;
@@ -48,8 +43,20 @@
 	}
 }
 
+.form-control {
+	// border: none;
+	border: 1px solid #05668d;
+	border-radius: 5px;
+	background: #f9f9f9;
+	box-shadow: none;
+}
+
+.form-control:focus {
+	outline: none !important;
+}
+
 .row {
-	border-bottom: 2px solid #f24333;
+	border-bottom: 2px solid #05668d;
 	margin: 0px !important;
 }
 
@@ -116,7 +123,7 @@ table {
 		margin: 10px 10px 10px 0px;
 	}
 
-	.btn-entrenar: disabled {
+	.btn-entrenar:disabled {
 		opacity: 0.4;
 	}
 	.train-bar {
@@ -168,6 +175,7 @@ table {
 		margin: 10px 0px;
 		padding: 30px;
 		// overflow: auto;
+		overflow-x: scroll;
 
 		p {
 			white-space: pre;
@@ -175,8 +183,8 @@ table {
 	}
 	#compile-code {
 		margin: 10px 0px;
-		border-right: 2px solid #bdbebf;
-		border-left: 2px solid #bdbebf;
+		border-right: 2px solid #05668d;
+		border-left: 2px solid #05668d;
 		padding: 30px;
 
 		p {
@@ -186,6 +194,7 @@ table {
 	#train-code {
 		margin: 10px 0px;
 		padding: 30px;
+		overflow-x: scroll;
 
 		p {
 			white-space: pre;

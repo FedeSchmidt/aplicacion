@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
 import { Layer } from './../models/layer';
+import { JsonPipe } from '@angular/common';
 
 @Component({
 	selector: 'app-mnist',
@@ -87,11 +88,78 @@ export class MnistComponent implements OnInit {
 		}
 	}
 
+	guardarModelo() {
+		let obj = {
+			learning_ratio: this.learning_ratio,
+			epochs: this.epochs,
+			batch_check: this.batch_check,
+			batch_size: this.batch_size,
+			metric: this.metric,
+			cost_function: this.cost_function,
+			regularization: this.regularization,
+			regularization_ratio: this.regularization_ratio,
+			net: this.net
+		};
+
+		// console.log(JSON.stringify(obj));
+
+		localStorage.setItem('neural_model_IA', JSON.stringify(obj));
+
+		// Retrieve the object from storage
+		// var retrievedObject = localStorage.getItem('testObject');
+	}
+
+	recuperarModelo() {
+		let object = localStorage.getItem('neural_model_IA');
+		let datos = JSON.parse(object);
+		console.log(datos);
+		this.learning_ratio = datos.learning_ratio;
+		this.epochs = datos.epochs;
+		this.batch_check = datos.batch_check;
+		this.batch_size = datos.batch_size;
+		this.metric = datos.metric;
+		this.cost_function = datos.cost_function;
+		this.regularization = datos.regularization;
+		this.regularization_ratio = datos.regularization_ratio;
+		this.net = datos.net;
+	}
 	armarRedBase() {
 		this.net.push(new Layer('Flatten', 784, '-', [ this.IMAGE_H, this.IMAGE_W, 1 ]));
 		this.net.push(new Layer('Dense', 42, 'ReLU', null));
 		this.net.push(new Layer('Dense', 10, 'Softmax', null));
 
+		// this.model_code.push('createModel() {');
+		// this.model_code.push('\tmodel = tf.sequential();');
+		// this.model_code.push('\tmodel.add( tf.layers.flatten( { inputShape: [ 28, 28, 1] } ) );');
+		// for (let i = 1; i < this.net.length; i++) {
+		// 	this.model_code.push(
+		// 		this.armarStringCapa(
+		// 			this.net[i].type.toLowerCase(),
+		// 			this.net[i].units.toString().toLowerCase(),
+		// 			this.net[i].activation.toLowerCase()
+		// 		)
+		// 	);
+		// }
+		// this.model_code.push('\treturn model;');
+		// this.model_code.push('}');
+
+		this.actualizarCodigo1();
+
+		this.compile_code.push('model.compile( {');
+		this.compile_code.push('\toptimizer: tf.train.sgd(0.15),');
+
+		this.train_code.push('train(){');
+
+		this.actualizarCodigo();
+		this.compile_code.push('} );');
+		// this.train_code.push('}');
+	}
+
+	// armarStringCapa(tipo, units, activacion) {
+	// 	return '\tmodel.add( tf.layers.' + tipo + '( { units: ' + units + ", activation: '" + activacion + "' } ) );";
+	// }
+	actualizarCodigo1() {
+		this.model_code = [];
 		this.model_code.push('createModel() {');
 		this.model_code.push('\tmodel = tf.sequential();');
 		this.model_code.push('\tmodel.add( tf.layers.flatten( { inputShape: [ 28, 28, 1] } ) );');
@@ -104,27 +172,31 @@ export class MnistComponent implements OnInit {
 				)
 			);
 		}
-
 		this.model_code.push('\treturn model;');
 		this.model_code.push('}');
-
-		this.compile_code.push('model.compile( {');
-		this.compile_code.push('\toptimizer: tf.train.sgd(0.15),');
-
-		this.train_code.push('train(){');
-
-		this.actualizarCodigo();
-		this.compile_code.push('} );');
-		this.train_code.push('}');
 	}
-
 	actualizarCodigo() {
 		this.compile_code.splice(2, 1, "\tloss: '" + this.cost_function + "',");
 		this.compile_code.splice(3, 1, "\tmetrics: [ '" + this.metric + "' ]");
 
 		if (!this.batch_check) this.train_code.splice(1, 1, '\tbatchSize = ' + 32 + ';');
 		else this.train_code.splice(1, 1, '\tbatchSize = ' + this.batch_size + ';');
-		this.train_code.splice(2, 1, '\tepochs = ' + this.epochs + ';');
+		this.train_code.splice(2, 1, '\ttrainEpochs = ' + this.epochs + ';');
+		this.train_code.splice(3, 1, '\ttrainData = getTrainData();');
+		this.train_code.splice(4, 1, '\ttestData = getTestData();');
+		this.train_code.splice(5, 1, '\tmodel.fit( trainData.images, trainData.labels, {');
+		this.train_code.splice(6, 1, '\t\tepochs: trainEpochs,');
+		this.train_code.splice(7, 1, '\t\tbatchSize: batchSize,');
+		this.train_code.splice(8, 1, '\t\tcallbacks: { onBatchEnd }');
+		this.train_code.splice(9, 1, '\t} );');
+		this.train_code.splice(10, 1, '\ttestResult = model.evaluate( testData.images, testData.labels );');
+		this.train_code.splice(11, 1, '\ttestAccuracyPercent = testResult[ 1 ].dataSync()[ 0 ] * 100;');
+		this.train_code.splice(12, 1, '\ttestAccuracy = parseFloat( testAccuracyPercent.toFixed(2) );');
+		this.train_code.splice(13, 1, '}');
+		this.train_code.splice(14, 1, '\n');
+		this.train_code.splice(15, 1, 'onBatchEnd( batch, logs ){');
+		this.train_code.splice(16, 1, "\tconsole.log( 'Accuracy', logs.acc );");
+		this.train_code.splice(17, 1, '}');
 	}
 	// //de la red.
 	createDenseModel() {
@@ -145,7 +217,7 @@ export class MnistComponent implements OnInit {
 			model.add(tf.layers.dense({ units: layer.units, activation: layer.activation }));
 		}
 
-		console.log(model);
+		// console.log(model);
 
 		return model;
 	}
@@ -240,6 +312,11 @@ export class MnistComponent implements OnInit {
 				`Final test accuracy: ${testAccPercent.toFixed(1)}%` +
 				`Test result: ${testResult}`
 		);
+
+		// await model.save('localstorage://my-model').then(console.log('modelo guardado'));
+		await model.save('indexeddb://my-model');
+		// localStorage.setItem('modelo', JSON.stringify(model));
+		// console.log(model);
 	}
 
 	async load() {
@@ -306,8 +383,8 @@ export class MnistComponent implements OnInit {
 			1
 		]);
 		const labels = tf.tensor2d(this.trainLabels, [ this.trainLabels.length / this.NUM_CLASSES, this.NUM_CLASSES ]);
-		console.log(xs);
-		console.log(labels);
+		// console.log(xs);
+		// console.log(labels);
 		return { xs, labels };
 	}
 
@@ -390,6 +467,7 @@ export class MnistComponent implements OnInit {
 
 	newLayer() {
 		this.net.push(new Layer('Flatten', 0, 'ReLU', null));
+		this.actualizarCodigo1();
 	}
 
 	removeLayer(index) {
