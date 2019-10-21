@@ -123,8 +123,6 @@
 <div class="row justify-content-center codigo">
     
         <div class="col-4"  id="model-code">
-            <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quae qui rerum expedita explicabo iure odit et veniam amet fugit, nam optio aut commodi illum. Fugit eligendi omnis doloribus labore error?</p>
-            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quae qui rerum expedita explicabo iure odit et veniam amet fugit, nam optio aut commodi illum. Fugit eligendi omnis doloribus labore error?</p> -->
             <p *ngFor="let sentencia of model_code">{{sentencia}}</p>
         </div>
         <div class="col-4"  id="compile-code">
@@ -140,15 +138,26 @@
 </div>
 
 
-<div class="row justify-content-center mt-2">
-    <div class="col-10">
-            <canvas id="canvas" width="280" height="280"></canvas>
+<div class="row justify-content-around mt-1">
+    <div class="col-11" id="example-preview">
+        
+                
+                <div  *ngFor="let item of examples_test; let i = index;" class="prediction-container" [style.visibility]="!ejemplos_cargados? 'hidden': 'visible'">
+                    <canvas class="prediction-canvas" id="canvas{{item}}"></canvas>
+                    <div *ngIf="ejemplos_cargados">Predicción: {{prediction_nuevas[item]}}</div>
+                    <div *ngIf="ejemplos_cargados">Real: {{prediction_labels[item]}}</div>
+                </div>
+                
+           
+            
+        
+        
+            <!-- <canvas id="canvas" width="280" height="280"></canvas>
             <canvas id="canvas2" width="28" height="28"></canvas>
             <button type="button" class="btn btn-primary ml-1" (click)="clearCanvas()">Clear</button>
             <button type="button" class="btn btn-primary ml-1" (click)="predict()">Predict</button>
-            <h5>Predicción: {{ prediction }}</h5>
-            <button type="button" class="btn btn-primary" (click)="guardarModelo()">guardar modelo</button>
-            <button type="button" class="btn btn-primary" (click)="recuperarModelo()">get modelo</button>
+            <h5>Predicción: {{ prediction }}</h5> -->
+            
     </div>
 
 </div>

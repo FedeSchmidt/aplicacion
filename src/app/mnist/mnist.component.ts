@@ -46,12 +46,13 @@ export class MnistComponent implements OnInit {
 
 	// parámetros generales
 	learning_ratio = 0.1;
-	epochs = 10;
+	epochs = 3;
 	//metrics = 'accuracy';
 	batch_check = true;
-	batch_size = 10;
+	batch_size = 320;
 
 	entrenando = false;
+	modelo_entrenado = false;
 
 	metricas = [ 'accuracy', 'mean_squared_error' ];
 	metric = 'accuracy';
@@ -70,6 +71,11 @@ export class MnistComponent implements OnInit {
 	train_code = [];
 	compile_code = [];
 
+	examples_test = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
+	ejemplos_cargados = false;
+	prediction_labels;
+	prediction_nuevas;
+
 	img_src = '';
 	dataImg;
 
@@ -78,18 +84,18 @@ export class MnistComponent implements OnInit {
 	ngOnInit() {
 		this.armarRedBase();
 		//this.net.push(new Layer('Flatten', 0, 'ReLU'));
-		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-		if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+		// this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+		// if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
 
-		if (this.cx) {
-			// React to mouse events on the canvas, and mouseup on the entire document
-			this.canvas.addEventListener('mousedown', this.startPosition, false);
-			this.canvas.addEventListener('mousemove', this.draw, false);
-			this.canvas.addEventListener('mouseup', this.finishedPosition, false);
-		}
+		// if (this.cx) {
+		// 	// React to mouse events on the canvas, and mouseup on the entire document
+		// 	this.canvas.addEventListener('mousedown', this.startPosition, false);
+		// 	this.canvas.addEventListener('mousemove', this.draw, false);
+		// 	this.canvas.addEventListener('mouseup', this.finishedPosition, false);
+		// }
 	}
 
-	guardarModelo() {
+	async guardarModelo() {
 		let obj = {
 			learning_ratio: this.learning_ratio,
 			epochs: this.epochs,
@@ -102,15 +108,16 @@ export class MnistComponent implements OnInit {
 			net: this.net
 		};
 
-		// console.log(JSON.stringify(obj));
-
 		localStorage.setItem('neural_model_IA', JSON.stringify(obj));
 
-		// Retrieve the object from storage
-		// var retrievedObject = localStorage.getItem('testObject');
+		if (this.modelo_entrenado) {
+			await this.model.save('indexeddb://model_IA').then((response) => {
+				console.log(response);
+			});
+		}
 	}
 
-	recuperarModelo() {
+	async recuperarModelo() {
 		let object = localStorage.getItem('neural_model_IA');
 		let datos = JSON.parse(object);
 		this.learning_ratio = datos.learning_ratio;
@@ -122,6 +129,8 @@ export class MnistComponent implements OnInit {
 		this.regularization = datos.regularization;
 		this.regularization_ratio = datos.regularization_ratio;
 		this.net = datos.net;
+
+		this.model = await tf.loadLayersModel('indexeddb://model_IA');
 	}
 	armarRedBase() {
 		this.net.push(new Layer('Flatten', 784, '-', [ this.IMAGE_H, this.IMAGE_W, 1 ]));
@@ -215,16 +224,70 @@ export class MnistComponent implements OnInit {
 		this.entrenando = true;
 		//this.createModel();
 		this.load().then(() => {
-			//const trainData = this.getTrainData();
-			//console.log(trainData.xs);
-			//const tensorData = trainData.xs.dataSync();
-
-			//console.log(tensorData);
 			this.model = this.createDenseModel();
-			this.train();
+			this.train().then(() => {
+				let data = this.getTestData(10);
+				let y_pred = this.model.predict(data.xs);
+				const labels = Array.from(data.labels.argMax(1).dataSync());
+				const predictions = Array.from(y_pred.argMax(1).dataSync());
+				this.prediction_labels = labels;
+				this.prediction_nuevas = predictions;
+				this.ejemplos_cargados = true;
+
+				const testExamples = data.xs.shape[0];
+
+				for (let i = 0; i < testExamples; i++) {
+					const image = data.xs.slice([ i, 0 ], [ 1, data.xs.shape[1] ]);
+
+					// const l = 'canvas' + i;
+					// console.log(l);
+
+					let canvas = document.getElementById('canvas' + i);
+
+					// console.log(canvas);
+					// canvas = document.getElementById(l);
+					// console.log(canvas);
+					// let canvas = document.createElement('canvas');
+					// canvas.classList.add('prediction-canvas');
+					// canvas.className = 'prediction-canvas';
+					// const div = document.createElement('div');
+					// //div.className = 'prediction-container';
+					// div.classList.add('prediction-container');
+					this.draw(image.flatten(), canvas);
+
+					// div.appendChild(canvas);
+
+					// let pred = document.createElement('div');
+					// pred.innerText = `Predicción: ${predictions[i]}`;
+
+					// let real = document.createElement('div');
+					// real.innerText = `Real: ${labels[i]}`;
+
+					// div.appendChild(real);
+					// div.appendChild(pred);
+					// document.getElementById('example-preview').appendChild(div);
+				}
+			});
 		});
 
 		this.entrenando = true;
+	}
+
+	draw(image, canvas) {
+		const [ width, height ] = [ 28, 28 ];
+		canvas.width = width;
+		canvas.height = height;
+		const ctx = canvas.getContext('2d');
+		const imageData = new ImageData(width, height);
+		const data = image.dataSync();
+		for (let i = 0; i < height * width; ++i) {
+			const j = i * 4;
+			imageData.data[j + 0] = data[i] * 255;
+			imageData.data[j + 1] = data[i] * 255;
+			imageData.data[j + 2] = data[i] * 255;
+			imageData.data[j + 3] = 255;
+		}
+		ctx.putImageData(imageData, 0, 0);
 	}
 
 	async train() {
@@ -233,6 +296,7 @@ export class MnistComponent implements OnInit {
 		//optimizer: tf.train.adam(0.001),
 		this.test_accuracy = 'Calculando...';
 		this.trainset_accuracy = 'Calculando...';
+		console.log(this.model !== undefined && this.model !== null);
 		this.model.compile({
 			optimizer: tf.train.sgd(this.learning_ratio),
 			loss: 'categoricalCrossentropy',
@@ -259,6 +323,8 @@ export class MnistComponent implements OnInit {
 		let valAcc;
 		let trainsetAcc;
 
+		console.log('antes del fit');
+
 		await this.model.fit(trainData.xs, trainData.labels, {
 			batchSize,
 			validationSplit,
@@ -268,22 +334,14 @@ export class MnistComponent implements OnInit {
 					trainBatchCount++;
 					this.progreso = Math.floor(trainBatchCount / totalNumBatches * 100);
 					console.log(
-						`Training... (` +
-							`${(trainBatchCount / totalNumBatches * 100).toFixed(1)}%` +
-							` complete). To stop training, refresh or close page.`
+						`Training... (` + `${(trainBatchCount / totalNumBatches * 100).toFixed(1)}%` + ` complete).`
 					);
-					//ui.plotLoss(trainBatchCount, logs.loss, 'train');
-					//ui.plotAccuracy(trainBatchCount, logs.acc, 'train');
-
-					await tf.nextFrame();
 				},
 				onEpochEnd: async (epoch, logs) => {
 					valAcc = logs.val_acc;
 					trainsetAcc = logs.acc;
-					// ui.plotLoss(trainBatchCount, logs.val_loss, 'validation');
-					// ui.plotAccuracy(trainBatchCount, logs.val_acc, 'validation');
-
-					await tf.nextFrame();
+					// console.log('Memory: ' + tf.memory().numBytes);
+					// console.log('Memory: ' + tf.memory().numTensors);
 				}
 			}
 		});
@@ -301,11 +359,7 @@ export class MnistComponent implements OnInit {
 				`Final test accuracy: ${testAccPercent.toFixed(1)}%` +
 				`Test result: ${testResult}`
 		);
-
-		// await model.save('localstorage://my-model').then(console.log('modelo guardado'));
-		//await this.model.save('indexeddb://my-model');
-		// localStorage.setItem('modelo', JSON.stringify(model));
-		// console.log(model);
+		this.modelo_entrenado = true;
 	}
 
 	async load() {
@@ -362,6 +416,7 @@ export class MnistComponent implements OnInit {
 		this.testImages = this.datasetImages.slice(this.IMAGE_SIZE * this.NUM_TRAIN_ELEMENTS);
 		this.trainLabels = this.datasetLabels.slice(0, this.NUM_CLASSES * this.NUM_TRAIN_ELEMENTS);
 		this.testLabels = this.datasetLabels.slice(this.NUM_CLASSES * this.NUM_TRAIN_ELEMENTS);
+		console.log('hasta el final del load bien');
 	}
 
 	getTrainData() {
@@ -374,6 +429,7 @@ export class MnistComponent implements OnInit {
 		const labels = tf.tensor2d(this.trainLabels, [ this.trainLabels.length / this.NUM_CLASSES, this.NUM_CLASSES ]);
 		// console.log(xs);
 		// console.log(labels);
+		console.log('final de get train data');
 		return { xs, labels };
 	}
 
@@ -390,69 +446,71 @@ export class MnistComponent implements OnInit {
 			xs = xs.slice([ 0, 0, 0, 0 ], [ numExamples, this.IMAGE_H, this.IMAGE_W, 1 ]);
 			labels = labels.slice([ 0, 0 ], [ numExamples, this.NUM_CLASSES ]);
 		}
+		console.log('final de get test data');
+
 		return { xs, labels };
 	}
 
-	clearCanvas() {
-		if (this.cx == undefined) {
-			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
-		}
+	// clearCanvas() {
+	// 	if (this.cx == undefined) {
+	// 		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+	// 		if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+	// 	}
 
-		this.cx.clearRect(0, 0, 280, 280);
+	// 	this.cx.clearRect(0, 0, 280, 280);
 
-		let cv2 = <HTMLCanvasElement>document.getElementById('canvas2');
-		let cx2 = cv2.getContext('2d');
+	// 	let cv2 = <HTMLCanvasElement>document.getElementById('canvas2');
+	// 	let cx2 = cv2.getContext('2d');
 
-		cx2.clearRect(0, 0, 28, 28);
-	}
+	// 	cx2.clearRect(0, 0, 28, 28);
+	// }
 
-	private startPosition(e) {
-		this.painting = true;
-		//this.draw(e);
-	}
+	// private startPosition(e) {
+	// 	this.painting = true;
+	// 	//this.draw(e);
+	// }
 
-	private finishedPosition() {
-		this.painting = false;
+	// private finishedPosition() {
+	// 	this.painting = false;
 
-		if (this.cx) {
-			this.cx.beginPath();
-		} else {
-			console.log('cerrando');
-			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
-			this.cx.closePath();
-		}
-	}
+	// 	if (this.cx) {
+	// 		this.cx.beginPath();
+	// 	} else {
+	// 		console.log('cerrando');
+	// 		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+	// 		if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+	// 		this.cx.closePath();
+	// 	}
+	// }
 
-	private draw(e) {
-		//console.log(e);
-		if (!this.painting) return;
+	// private draw(e) {
+	// 	//console.log(e);
+	// 	if (!this.painting) return;
 
-		//console.log(this.ctx);
-		// this.cx.lineWidth = 10;
-		// this.cx.lineCap = 'round';
-		if (this.cx) {
-			//this.cx.fillStyle = 'black';
-			this.cx.lineWidth = 30;
-			this.cx.lineCap = 'round';
-			//var w = window.innerWidth / 12;
-			var w = window.scrollX + this.canvas.getBoundingClientRect().left; // X
+	// 	//console.log(this.ctx);
+	// 	// this.cx.lineWidth = 10;
+	// 	// this.cx.lineCap = 'round';
+	// 	if (this.cx) {
+	// 		//this.cx.fillStyle = 'black';
+	// 		this.cx.lineWidth = 30;
+	// 		this.cx.lineCap = 'round';
+	// 		//var w = window.innerWidth / 12;
+	// 		var w = window.scrollX + this.canvas.getBoundingClientRect().left; // X
 
-			var z = window.scrollY + this.canvas.getBoundingClientRect().top; // Y
-			this.cx.lineTo(e.clientX - w, e.clientY - z);
-			this.cx.stroke();
-			this.cx.beginPath();
-			this.cx.moveTo(e.clientX - w, e.clientY - z);
-		} else {
-			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+	// 		var z = window.scrollY + this.canvas.getBoundingClientRect().top; // Y
+	// 		this.cx.lineTo(e.clientX - w, e.clientY - z);
+	// 		this.cx.stroke();
+	// 		this.cx.beginPath();
+	// 		this.cx.moveTo(e.clientX - w, e.clientY - z);
+	// 	} else {
+	// 		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+	// 		if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
 
-			this.canvas.addEventListener('mousedown', this.startPosition, false);
-			this.canvas.addEventListener('mousemove', this.draw, false);
-			this.canvas.addEventListener('mouseup', this.finishedPosition, false);
-		}
-	}
+	// 		this.canvas.addEventListener('mousedown', this.startPosition, false);
+	// 		this.canvas.addEventListener('mousemove', this.draw, false);
+	// 		this.canvas.addEventListener('mouseup', this.finishedPosition, false);
+	// 	}
+	// }
 
 	newLayer() {
 		this.net.push(new Layer('Flatten', 0, 'ReLU', null));
@@ -488,152 +546,152 @@ export class MnistComponent implements OnInit {
 	armarStringCapa(tipo, units, activacion) {
 		return '\tmodel.add( tf.layers.' + tipo + '( { units: ' + units + ", activation: '" + activacion + "' } ) );";
 	}
-	mostrar() {
-		if (!this.cx) {
-			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
-		}
+	// mostrar() {
+	// 	if (!this.cx) {
+	// 		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+	// 		if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+	// 	}
 
-		//let c1 = document.createElement('canvas');
-		let canvas2 = <HTMLCanvasElement>document.getElementById('canvas2');
-		//let ctx1 = c1.getContext('2d');
-		//c1.width = 28;
-		//c1.height = 28;
-		let ctx1 = canvas2.getContext('2d');
-		ctx1.drawImage(this.canvas, 4, 4, 20, 20);
-		//document.getElementById('img').src = c1.toDataURL();
-		this.img_src = canvas2.toDataURL();
-		// document.getElementById('c').style.display = 'none';
-		//hidden = true
+	// 	//let c1 = document.createElement('canvas');
+	// 	let canvas2 = <HTMLCanvasElement>document.getElementById('canvas2');
+	// 	//let ctx1 = c1.getContext('2d');
+	// 	//c1.width = 28;
+	// 	//c1.height = 28;
+	// 	let ctx1 = canvas2.getContext('2d');
+	// 	ctx1.drawImage(this.canvas, 4, 4, 20, 20);
+	// 	//document.getElementById('img').src = c1.toDataURL();
+	// 	this.img_src = canvas2.toDataURL();
+	// 	// document.getElementById('c').style.display = 'none';
+	// 	//hidden = true
 
-		var imgData = ctx1.getImageData(0, 0, 28, 28);
-		console.log(imgData);
-		var imgBlack = [];
-		for (var i = 0; i < imgData.data.length; i += 4) {
-			if (imgData.data[i + 3] === 255) imgBlack.push(1);
-			else imgBlack.push(0);
-		}
+	// 	var imgData = ctx1.getImageData(0, 0, 28, 28);
+	// 	console.log(imgData);
+	// 	var imgBlack = [];
+	// 	for (var i = 0; i < imgData.data.length; i += 4) {
+	// 		if (imgData.data[i + 3] === 255) imgBlack.push(1);
+	// 		else imgBlack.push(0);
+	// 	}
 
-		console.log(imgBlack);
+	// 	console.log(imgBlack);
 
-		var dataStr = JSON.stringify(imgData);
+	// 	var dataStr = JSON.stringify(imgData);
 
-		let imgR = tf.reshape(imgBlack, [ 28, 28, 1 ]).expandDims(0);
-		//imgR = tf.cast(imgR, 'float32');
-		console.log(imgR);
-	}
+	// 	let imgR = tf.reshape(imgBlack, [ 28, 28, 1 ]).expandDims(0);
+	// 	//imgR = tf.cast(imgR, 'float32');
+	// 	console.log(imgR);
+	// }
 
-	recogniseNumber() {
-		if (!this.cx) {
-			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
-		}
+	// recogniseNumber() {
+	// 	if (!this.cx) {
+	// 		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+	// 		if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+	// 	}
 
-		var imageData = this.cx.getImageData(0, 0, 280, 280);
-		var tfImage = tf.browser.fromPixels(imageData, 1);
+	// 	var imageData = this.cx.getImageData(0, 0, 280, 280);
+	// 	var tfImage = tf.browser.fromPixels(imageData, 1);
 
-		//Resize to 28X28
-		var tfResizedImage = tf.image.resizeBilinear(tfImage, [ 28, 28 ]);
-		//Since white is 255 black is 0 so need to revert the values
-		//so that white is 0 and black is 255
-		tfResizedImage = tf.cast(tfResizedImage, 'float32');
-		tfResizedImage = tf.abs(tfResizedImage.sub(tf.scalar(255))).div(tf.scalar(255));
-		tfResizedImage = tfResizedImage.reshape([ 28, 28, 1 ]).expandDims(0);
+	// 	//Resize to 28X28
+	// 	var tfResizedImage = tf.image.resizeBilinear(tfImage, [ 28, 28 ]);
+	// 	//Since white is 255 black is 0 so need to revert the values
+	// 	//so that white is 0 and black is 255
+	// 	tfResizedImage = tf.cast(tfResizedImage, 'float32');
+	// 	tfResizedImage = tf.abs(tfResizedImage.sub(tf.scalar(255))).div(tf.scalar(255));
+	// 	tfResizedImage = tfResizedImage.reshape([ 28, 28, 1 ]).expandDims(0);
 
-		//Make another dimention as the model expects
-		console.log(tfResizedImage);
-		return tfResizedImage;
-		//predict(tfResizedImage);
-	}
+	// 	//Make another dimention as the model expects
+	// 	console.log(tfResizedImage);
+	// 	return tfResizedImage;
+	// 	//predict(tfResizedImage);
+	// }
 
-	getImage() {
-		if (!this.cx) {
-			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-			if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
-		}
+	// getImage() {
+	// 	if (!this.cx) {
+	// 		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+	// 		if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+	// 	}
 
-		let c1 = <HTMLCanvasElement>document.getElementById('canvas2');
-		let ctx1 = c1.getContext('2d');
-		console.log(c1.width + '|||' + c1.height);
+	// 	let c1 = <HTMLCanvasElement>document.getElementById('canvas2');
+	// 	let ctx1 = c1.getContext('2d');
+	// 	console.log(c1.width + '|||' + c1.height);
 
-		ctx1.drawImage(this.canvas, 4, 4, 20, 20);
-		let imgData = ctx1.getImageData(0, 0, 28, 28);
+	// 	ctx1.drawImage(this.canvas, 4, 4, 20, 20);
+	// 	let imgData = ctx1.getImageData(0, 0, 28, 28);
 
-		// let canvas2 = <HTMLCanvasElement>document.getElementById('canvas2');
-		// let ctx1 = canvas2.getContext('2d');
-		// ctx1.drawImage(this.canvas, 4, 4, 20, 20);
-		// let imgData = ctx1.getImageData(0, 0, 28, 28);
+	// 	// let canvas2 = <HTMLCanvasElement>document.getElementById('canvas2');
+	// 	// let ctx1 = canvas2.getContext('2d');
+	// 	// ctx1.drawImage(this.canvas, 4, 4, 20, 20);
+	// 	// let imgData = ctx1.getImageData(0, 0, 28, 28);
 
-		// let c1 = document.createElement('canvas');
-		// let ctx1 = c1.getContext('2d');
-		// c1.width = 28;
-		// c1.height = 28;
-		// ctx1.drawImage(this.canvas, 4, 4, 20, 20);
+	// 	// let c1 = document.createElement('canvas');
+	// 	// let ctx1 = c1.getContext('2d');
+	// 	// c1.width = 28;
+	// 	// c1.height = 28;
+	// 	// ctx1.drawImage(this.canvas, 4, 4, 20, 20);
 
-		// var imgData = ctx1.getImageData(0, 0, 28, 28);
+	// 	// var imgData = ctx1.getImageData(0, 0, 28, 28);
 
-		return imgData;
+	// 	return imgData;
 
-		// var imgBlack = [];
-		// for (var i = 0; i < imgData.data.length; i += 4) {
-		// 	if (imgData.data[i + 3] === 255) imgBlack.push(1);
-		// 	else imgBlack.push(0);
-		// }
+	// 	// var imgBlack = [];
+	// 	// for (var i = 0; i < imgData.data.length; i += 4) {
+	// 	// 	if (imgData.data[i + 3] === 255) imgBlack.push(1);
+	// 	// 	else imgBlack.push(0);
+	// 	// }
 
-		// return imgBlack;
-	}
-	async predict2() {
-		// if (!this.cx) {
-		// 	this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-		// 	if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
-		// }
+	// 	// return imgBlack;
+	// }
+	// async predict2() {
+	// 	// if (!this.cx) {
+	// 	// 	this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+	// 	// 	if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+	// 	// }
 
-		const pred = await tf.tidy(() => {
-			// let imageData = this.cx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-			// let img = tf.browser.fromPixels(imageData, 1).expandDims(0);
-			// //let imgR = tf.reshape(img, [ 28, 28 ]);
-			// let imgR = tf.cast(img, 'float32');
-			// console.log(imgR);
-			// console.log(this.model);
+	// 	const pred = await tf.tidy(() => {
+	// 		// let imageData = this.cx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+	// 		// let img = tf.browser.fromPixels(imageData, 1).expandDims(0);
+	// 		// //let imgR = tf.reshape(img, [ 28, 28 ]);
+	// 		// let imgR = tf.cast(img, 'float32');
+	// 		// console.log(imgR);
+	// 		// console.log(this.model);
 
-			//let image = this.getImage();
-			let image = this.recogniseNumber();
-			//let img = tf.browser.fromPixels(image, 1).expandDims(0);
-			// let imgR = tf.reshape(image, [ 28, 28, 1 ]).expandDims(0);
-			// imgR = tf.cast(imgR, 'float32');
+	// 		//let image = this.getImage();
+	// 		let image = this.recogniseNumber();
+	// 		//let img = tf.browser.fromPixels(image, 1).expandDims(0);
+	// 		// let imgR = tf.reshape(image, [ 28, 28, 1 ]).expandDims(0);
+	// 		// imgR = tf.cast(imgR, 'float32');
 
-			const output = this.model.predict(image) as any;
+	// 		const output = this.model.predict(image) as any;
 
-			this.predictions = Array.from(output.dataSync());
-			console.log(this.predictions);
-			console.log(output);
-			this.prediction = this.predictions.indexOf(Math.max(...this.predictions));
-		});
-	}
-	async predict() {
-		// if (!this.cx) {
-		// 	this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-		// 	if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
-		// }
+	// 		this.predictions = Array.from(output.dataSync());
+	// 		console.log(this.predictions);
+	// 		console.log(output);
+	// 		this.prediction = this.predictions.indexOf(Math.max(...this.predictions));
+	// 	});
+	// }
+	// async predict() {
+	// 	// if (!this.cx) {
+	// 	// 	this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+	// 	// 	if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+	// 	// }
 
-		//let imageData = this.cx.getImageData(0, 0, 280, 280);
-		let imageData = this.getImage();
+	// 	//let imageData = this.cx.getImageData(0, 0, 280, 280);
+	// 	let imageData = this.getImage();
 
-		if (this.dataImg !== undefined) {
-			console.log(this.dataImg == imageData);
-		}
-		this.dataImg = imageData;
+	// 	if (this.dataImg !== undefined) {
+	// 		console.log(this.dataImg == imageData);
+	// 	}
+	// 	this.dataImg = imageData;
 
-		const pred = await tf.tidy(() => {
-			let img = tf.browser.fromPixels(imageData, 1);
-			img = img.reshape([ 28, 28, 1 ]).expandDims(0);
-			img = tf.cast(img, 'float32');
+	// 	const pred = await tf.tidy(() => {
+	// 		let img = tf.browser.fromPixels(imageData, 1);
+	// 		img = img.reshape([ 28, 28, 1 ]).expandDims(0);
+	// 		img = tf.cast(img, 'float32');
 
-			const output = this.model.predict(img) as any;
+	// 		const output = this.model.predict(img) as any;
 
-			this.predictions = Array.from(output.dataSync());
-			console.log(this.predictions);
-			this.prediction = this.predictions.indexOf(Math.max(...this.predictions));
-		});
-	}
+	// 		this.predictions = Array.from(output.dataSync());
+	// 		console.log(this.predictions);
+	// 		this.prediction = this.predictions.indexOf(Math.max(...this.predictions));
+	// 	});
+	// }
 }

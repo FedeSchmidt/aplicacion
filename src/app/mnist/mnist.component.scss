@@ -203,36 +203,38 @@ table {
 	#model-code {
 		margin: 10px 0px;
 		padding: 30px;
-		// overflow: auto;
-		overflow-x: scroll;
-
-		p {
-			white-space: pre;
-		}
+		// // overflow: auto;
+		// overflow-x: scroll;
 	}
 	#compile-code {
 		margin: 10px 0px;
 		border-right: 2px solid #05668d;
 		border-left: 2px solid #05668d;
 		padding: 30px;
-
-		p {
-			white-space: pre;
-		}
 	}
 	#train-code {
 		margin: 10px 0px;
 		padding: 30px;
-		overflow-x: scroll;
-
-		p {
-			white-space: pre;
-		}
+		// overflow-x: scroll;
 	}
 
 	p {
-		margin: 0;
+		margin: 5px 0px;
 		text-align: start;
-		font-style: italic;
+		white-space: pre;
+	}
+}
+
+#example-preview {
+	text-align: center;
+	.prediction-container {
+		display: inline-block;
+		width: 100px;
+		height: 100px;
+		margin: 10px;
+	}
+	.prediction-canvas {
+		width: 100px;
+		border-radius: 5px;
 	}
 }
