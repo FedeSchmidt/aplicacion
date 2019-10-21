@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { CdkTextareaAutosize } from '@angular/cdk/text-field';
 
 @Component({
 	selector: 'app-codigo',
@@ -6,27 +7,47 @@ import { Component, OnInit } from '@angular/core';
 	styleUrls: [ './codigo.component.scss' ]
 })
 export class CodigoComponent implements OnInit {
-	y = 1;
-
-	x = 1;
-
-	t;
-
+	painting = false;
+	canvas;
+	cx;
 	constructor() {}
 
 	ngOnInit() {
-		console.log(this.x);
-		console.log(this.test);
-		this.test(1);
-		console.log(this.x);
+		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+		this.cx = this.canvas.getContext('2d');
 
-		this.t = String(this.test).replace(/param/g, this.y + '');
-		//this.t = this.test.toString().replace(/param/g, this.y + '');
-		console.log(this.t);
+		this.canvas.height = 200;
+		this.canvas.width = 200;
+
+		this.canvas.addEventListener('mousedown', this.startPosition);
+		this.canvas.addEventListener('mouseup', this.finishedPosition);
+		this.canvas.addEventListener('mousemove', this.draw);
 	}
 
-	test(param) {
-		this.x = this.y + 1;
-		console.log(param);
+	startPosition() {
+		this.painting = true;
+	}
+
+	finishedPosition() {
+		this.painting = false;
+
+		this.cx.beginPath();
+	}
+
+	draw(e) {
+		//console.log(e);
+
+		if (!this.painting) return;
+		if (this.canvas == undefined) {
+			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
+			this.cx = this.canvas.getContext('2d');
+		}
+
+		this.cx.lineWidth = 10;
+		this.cx.lineCap = 'round';
+		this.cx.lineTo(e.clientX, e.clientY - 56);
+		this.cx.stroke();
+		this.cx.beginPath();
+		this.cx.moveTo(e.clientX, e.clientY - 56);
 	}
 }

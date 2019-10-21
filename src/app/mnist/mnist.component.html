@@ -162,3 +162,12 @@
 
 </div>
 
+<div class="row justify-content-center mt-1">
+    <div class="col-11">
+            <canvas id="predict-canvas" width="140" height="140"></canvas>
+            <canvas id="preview-canvas" width="28" height="28"></canvas>
+            <button type="button" class="btn btn-primary ml-1" (click)="clearCanvas()">Clear</button>
+            <button type="button" class="btn btn-primary ml-1" (click)="predict()">Predict</button>
+            <h5>Predicción: {{ prediction }}</h5> 
+    </div>
+</div>

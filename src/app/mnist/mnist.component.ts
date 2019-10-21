@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
 import { Layer } from './../models/layer';
 import { JsonPipe } from '@angular/common';
+import { Path } from 'paper';
 
 @Component({
 	selector: 'app-mnist',
@@ -27,13 +28,13 @@ export class MnistComponent implements OnInit {
 	testLabels: any;
 
 	net = [];
+	model: any;
 
 	progreso = 0;
 	validation_accuracy = 0;
 	test_accuracy = '---';
 	trainset_accuracy = '---';
 
-	model: any;
 	arr = [];
 	predictions: any;
 	prediction: any;
@@ -43,6 +44,9 @@ export class MnistComponent implements OnInit {
 	painting = false;
 	cx: CanvasRenderingContext2D;
 	canvas: HTMLCanvasElement;
+	clickX = [];
+	clickY = [];
+	clickDrag = [];
 
 	// parámetros generales
 	learning_ratio = 0.1;
@@ -83,16 +87,13 @@ export class MnistComponent implements OnInit {
 
 	ngOnInit() {
 		this.armarRedBase();
-		//this.net.push(new Layer('Flatten', 0, 'ReLU'));
-		// this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-		// if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
 
-		// if (this.cx) {
-		// 	// React to mouse events on the canvas, and mouseup on the entire document
-		// 	this.canvas.addEventListener('mousedown', this.startPosition, false);
-		// 	this.canvas.addEventListener('mousemove', this.draw, false);
-		// 	this.canvas.addEventListener('mouseup', this.finishedPosition, false);
-		// }
+		let canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
+		let context = canvas.getContext('2d');
+
+		canvas.addEventListener('mousedown', this.startPosition);
+		canvas.addEventListener('mouseup', this.finishedPosition);
+		canvas.addEventListener('mousemove', this.mouseMove);
 	}
 
 	async guardarModelo() {
@@ -239,37 +240,12 @@ export class MnistComponent implements OnInit {
 				for (let i = 0; i < testExamples; i++) {
 					const image = data.xs.slice([ i, 0 ], [ 1, data.xs.shape[1] ]);
 
-					// const l = 'canvas' + i;
-					// console.log(l);
-
 					let canvas = document.getElementById('canvas' + i);
 
-					// console.log(canvas);
-					// canvas = document.getElementById(l);
-					// console.log(canvas);
-					// let canvas = document.createElement('canvas');
-					// canvas.classList.add('prediction-canvas');
-					// canvas.className = 'prediction-canvas';
-					// const div = document.createElement('div');
-					// //div.className = 'prediction-container';
-					// div.classList.add('prediction-container');
 					this.draw(image.flatten(), canvas);
-
-					// div.appendChild(canvas);
-
-					// let pred = document.createElement('div');
-					// pred.innerText = `Predicción: ${predictions[i]}`;
-
-					// let real = document.createElement('div');
-					// real.innerText = `Real: ${labels[i]}`;
-
-					// div.appendChild(real);
-					// div.appendChild(pred);
-					// document.getElementById('example-preview').appendChild(div);
 				}
 			});
 		});
-
 		this.entrenando = true;
 	}
 
@@ -451,66 +427,79 @@ export class MnistComponent implements OnInit {
 		return { xs, labels };
 	}
 
-	// clearCanvas() {
-	// 	if (this.cx == undefined) {
-	// 		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-	// 		if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
-	// 	}
+	// metodos del canvas para dibujar
 
-	// 	this.cx.clearRect(0, 0, 280, 280);
+	async predict() {
+		let canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
+		let preview = <HTMLCanvasElement>document.getElementById('preview-canvas');
 
-	// 	let cv2 = <HTMLCanvasElement>document.getElementById('canvas2');
-	// 	let cx2 = cv2.getContext('2d');
+		let img = tf.browser.fromPixels(canvas, 4);
+		let resized = this.cropImage(img, canvas.width);
+		tf.browser.toPixels(resized, preview);
 
-	// 	cx2.clearRect(0, 0, 28, 28);
-	// }
+		let x_data = tf.cast(resized.reshape([ 1, 28, 28, 1 ]), 'float32');
 
-	// private startPosition(e) {
-	// 	this.painting = true;
-	// 	//this.draw(e);
-	// }
+		let y_pred = this.model.predict(x_data);
 
-	// private finishedPosition() {
-	// 	this.painting = false;
+		this.prediction = Array.from(y_pred.argMax(1).dataSync());
+	}
 
-	// 	if (this.cx) {
-	// 		this.cx.beginPath();
-	// 	} else {
-	// 		console.log('cerrando');
-	// 		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-	// 		if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
-	// 		this.cx.closePath();
-	// 	}
-	// }
+	clearCanvas() {
+		let canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
+		canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+	}
 
-	// private draw(e) {
-	// 	//console.log(e);
-	// 	if (!this.painting) return;
+	cropImage(img, width = 140) {
+		img = img.slice([ 0, 0, 3 ]);
+		var mask_x = tf.greater(img.sum(0), 0).reshape([ -1 ]);
+		var mask_y = tf.greater(img.sum(1), 0).reshape([ -1 ]);
+		var st = tf.stack([ mask_x, mask_y ]);
+		var v1 = tf.topk(st);
+		var v2 = tf.topk(st.reverse());
 
-	// 	//console.log(this.ctx);
-	// 	// this.cx.lineWidth = 10;
-	// 	// this.cx.lineCap = 'round';
-	// 	if (this.cx) {
-	// 		//this.cx.fillStyle = 'black';
-	// 		this.cx.lineWidth = 30;
-	// 		this.cx.lineCap = 'round';
-	// 		//var w = window.innerWidth / 12;
-	// 		var w = window.scrollX + this.canvas.getBoundingClientRect().left; // X
+		var [ x1, y1 ] = v1.indices.dataSync();
+		var [ y2, x2 ] = v2.indices.dataSync();
+		y2 = width - y2 - 1;
+		x2 = width - x2 - 1;
+		var crop_w = x2 - x1;
+		var crop_h = y2 - y1;
 
-	// 		var z = window.scrollY + this.canvas.getBoundingClientRect().top; // Y
-	// 		this.cx.lineTo(e.clientX - w, e.clientY - z);
-	// 		this.cx.stroke();
-	// 		this.cx.beginPath();
-	// 		this.cx.moveTo(e.clientX - w, e.clientY - z);
-	// 	} else {
-	// 		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-	// 		if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
+		if (crop_w > crop_h) {
+			y1 -= (crop_w - crop_h) / 2;
+			crop_h = crop_w;
+		}
+		if (crop_h > crop_w) {
+			x1 -= (crop_h - crop_w) / 2;
+			crop_w = crop_h;
+		}
 
-	// 		this.canvas.addEventListener('mousedown', this.startPosition, false);
-	// 		this.canvas.addEventListener('mousemove', this.draw, false);
-	// 		this.canvas.addEventListener('mouseup', this.finishedPosition, false);
-	// 	}
-	// }
+		img = img.slice([ y1, x1 ], [ crop_h, crop_w ]);
+		img = img.pad([ [ 6, 6 ], [ 6, 6 ], [ 0, 0 ] ]);
+		var resized = tf.image.resizeNearestNeighbor(img, [ 28, 28 ]);
+
+		for (let i = 0; i < 28 * 28; i++) {
+			resized[i] = 255 - resized[i];
+		}
+		return resized;
+	}
+
+	startPosition(e) {
+		this.painting = true;
+		// let canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
+		// let context = canvas.getContext('2d');
+	}
+
+	finishedPosition() {
+		this.painting = false;
+
+		let canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
+		canvas.getContext('2d').closePath();
+	}
+
+	mouseMove(e) {
+		let canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
+		let context = canvas.getContext('2d');
+	}
 
 	newLayer() {
 		this.net.push(new Layer('Flatten', 0, 'ReLU', null));
@@ -518,180 +507,20 @@ export class MnistComponent implements OnInit {
 	}
 
 	removeLayer(index) {
-		// delete this.net[index];
 		this.net.splice(index, 1);
-		console.log(this.net);
+		// console.log(this.net);
 	}
 	onChange(value, field, index) {
-		// console.log(index);
-		// console.log(field);
-		// console.log(value);
 		if (field == 'units') {
 			this.net[index][field] = parseInt(value);
 		} else {
 			this.net[index][field] = value;
 		}
 
-		// console.log(this.net);
-		// let label = this.armarStringCapa(
-		// 	this.net[index].type.toLowerCase(),
-		// 	this.net[index].units.toString().toLowerCase(),
-		// 	this.net[index].activation.toLowerCase()
-		// );
-		// this.model_code[index + 2] = label;
-		// console.log(label);
 		this.actualizarCodigo1();
 	}
 
 	armarStringCapa(tipo, units, activacion) {
 		return '\tmodel.add( tf.layers.' + tipo + '( { units: ' + units + ", activation: '" + activacion + "' } ) );";
 	}
-	// mostrar() {
-	// 	if (!this.cx) {
-	// 		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-	// 		if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
-	// 	}
-
-	// 	//let c1 = document.createElement('canvas');
-	// 	let canvas2 = <HTMLCanvasElement>document.getElementById('canvas2');
-	// 	//let ctx1 = c1.getContext('2d');
-	// 	//c1.width = 28;
-	// 	//c1.height = 28;
-	// 	let ctx1 = canvas2.getContext('2d');
-	// 	ctx1.drawImage(this.canvas, 4, 4, 20, 20);
-	// 	//document.getElementById('img').src = c1.toDataURL();
-	// 	this.img_src = canvas2.toDataURL();
-	// 	// document.getElementById('c').style.display = 'none';
-	// 	//hidden = true
-
-	// 	var imgData = ctx1.getImageData(0, 0, 28, 28);
-	// 	console.log(imgData);
-	// 	var imgBlack = [];
-	// 	for (var i = 0; i < imgData.data.length; i += 4) {
-	// 		if (imgData.data[i + 3] === 255) imgBlack.push(1);
-	// 		else imgBlack.push(0);
-	// 	}
-
-	// 	console.log(imgBlack);
-
-	// 	var dataStr = JSON.stringify(imgData);
-
-	// 	let imgR = tf.reshape(imgBlack, [ 28, 28, 1 ]).expandDims(0);
-	// 	//imgR = tf.cast(imgR, 'float32');
-	// 	console.log(imgR);
-	// }
-
-	// recogniseNumber() {
-	// 	if (!this.cx) {
-	// 		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-	// 		if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
-	// 	}
-
-	// 	var imageData = this.cx.getImageData(0, 0, 280, 280);
-	// 	var tfImage = tf.browser.fromPixels(imageData, 1);
-
-	// 	//Resize to 28X28
-	// 	var tfResizedImage = tf.image.resizeBilinear(tfImage, [ 28, 28 ]);
-	// 	//Since white is 255 black is 0 so need to revert the values
-	// 	//so that white is 0 and black is 255
-	// 	tfResizedImage = tf.cast(tfResizedImage, 'float32');
-	// 	tfResizedImage = tf.abs(tfResizedImage.sub(tf.scalar(255))).div(tf.scalar(255));
-	// 	tfResizedImage = tfResizedImage.reshape([ 28, 28, 1 ]).expandDims(0);
-
-	// 	//Make another dimention as the model expects
-	// 	console.log(tfResizedImage);
-	// 	return tfResizedImage;
-	// 	//predict(tfResizedImage);
-	// }
-
-	// getImage() {
-	// 	if (!this.cx) {
-	// 		this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-	// 		if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
-	// 	}
-
-	// 	let c1 = <HTMLCanvasElement>document.getElementById('canvas2');
-	// 	let ctx1 = c1.getContext('2d');
-	// 	console.log(c1.width + '|||' + c1.height);
-
-	// 	ctx1.drawImage(this.canvas, 4, 4, 20, 20);
-	// 	let imgData = ctx1.getImageData(0, 0, 28, 28);
-
-	// 	// let canvas2 = <HTMLCanvasElement>document.getElementById('canvas2');
-	// 	// let ctx1 = canvas2.getContext('2d');
-	// 	// ctx1.drawImage(this.canvas, 4, 4, 20, 20);
-	// 	// let imgData = ctx1.getImageData(0, 0, 28, 28);
-
-	// 	// let c1 = document.createElement('canvas');
-	// 	// let ctx1 = c1.getContext('2d');
-	// 	// c1.width = 28;
-	// 	// c1.height = 28;
-	// 	// ctx1.drawImage(this.canvas, 4, 4, 20, 20);
-
-	// 	// var imgData = ctx1.getImageData(0, 0, 28, 28);
-
-	// 	return imgData;
-
-	// 	// var imgBlack = [];
-	// 	// for (var i = 0; i < imgData.data.length; i += 4) {
-	// 	// 	if (imgData.data[i + 3] === 255) imgBlack.push(1);
-	// 	// 	else imgBlack.push(0);
-	// 	// }
-
-	// 	// return imgBlack;
-	// }
-	// async predict2() {
-	// 	// if (!this.cx) {
-	// 	// 	this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-	// 	// 	if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
-	// 	// }
-
-	// 	const pred = await tf.tidy(() => {
-	// 		// let imageData = this.cx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-	// 		// let img = tf.browser.fromPixels(imageData, 1).expandDims(0);
-	// 		// //let imgR = tf.reshape(img, [ 28, 28 ]);
-	// 		// let imgR = tf.cast(img, 'float32');
-	// 		// console.log(imgR);
-	// 		// console.log(this.model);
-
-	// 		//let image = this.getImage();
-	// 		let image = this.recogniseNumber();
-	// 		//let img = tf.browser.fromPixels(image, 1).expandDims(0);
-	// 		// let imgR = tf.reshape(image, [ 28, 28, 1 ]).expandDims(0);
-	// 		// imgR = tf.cast(imgR, 'float32');
-
-	// 		const output = this.model.predict(image) as any;
-
-	// 		this.predictions = Array.from(output.dataSync());
-	// 		console.log(this.predictions);
-	// 		console.log(output);
-	// 		this.prediction = this.predictions.indexOf(Math.max(...this.predictions));
-	// 	});
-	// }
-	// async predict() {
-	// 	// if (!this.cx) {
-	// 	// 	this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
-	// 	// 	if (this.canvas.getContext) this.cx = this.canvas.getContext('2d');
-	// 	// }
-
-	// 	//let imageData = this.cx.getImageData(0, 0, 280, 280);
-	// 	let imageData = this.getImage();
-
-	// 	if (this.dataImg !== undefined) {
-	// 		console.log(this.dataImg == imageData);
-	// 	}
-	// 	this.dataImg = imageData;
-
-	// 	const pred = await tf.tidy(() => {
-	// 		let img = tf.browser.fromPixels(imageData, 1);
-	// 		img = img.reshape([ 28, 28, 1 ]).expandDims(0);
-	// 		img = tf.cast(img, 'float32');
-
-	// 		const output = this.model.predict(img) as any;
-
-	// 		this.predictions = Array.from(output.dataSync());
-	// 		console.log(this.predictions);
-	// 		this.prediction = this.predictions.indexOf(Math.max(...this.predictions));
-	// 	});
-	// }
 }

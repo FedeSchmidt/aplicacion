@@ -1,25 +1,6 @@
-#model-code {
-	margin: 10px 0px;
-	text-align: justify;
-	padding: 30px;
-}
-#train-code {
-	margin: 10px 0px;
-	border-right: 2px solid #bdbebf;
-	border-left: 2px solid #bdbebf;
-	text-align: justify;
-	padding: 30px;
-}
-#compile-code {
-	margin: 10px 0px;
-	text-align: justify;
-	padding: 30px;
+#canvas {
+	border: 2px solid black;
 }
 .row {
-	border-bottom: 2px solid #f24333;
-	margin: 0px !important;
-
-	p {
-		margin: 0px;
-	}
+	margin: 0 !important;
 }

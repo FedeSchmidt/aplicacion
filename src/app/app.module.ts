@@ -16,7 +16,8 @@ import { NavbarComponent } from './navbar/navbar.component';
 const appRoutes: Routes = [
 	{ path: '', component: MnistComponent },
 	// { path: 'linear', component: LinearComponent },
-	{ path: 'mnist', component: MnistComponent }
+	{ path: 'mnist', component: MnistComponent },
+	{ path: 'canvas', component: CodigoComponent }
 ];
 
 @NgModule({
