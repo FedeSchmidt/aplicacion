@@ -35,19 +35,17 @@ export class CodigoComponent implements OnInit {
 	}
 
 	draw(e) {
-		//console.log(e);
-
 		if (!this.painting) return;
 		if (this.canvas == undefined) {
 			this.canvas = <HTMLCanvasElement>document.getElementById('canvas');
 			this.cx = this.canvas.getContext('2d');
 		}
 
-		this.cx.lineWidth = 10;
+		this.cx.lineWidth = 8;
 		this.cx.lineCap = 'round';
-		this.cx.lineTo(e.clientX, e.clientY - 56);
+		this.cx.lineTo(e.clientX - this.canvas.offsetLeft, e.clientY - this.canvas.offsetTop);
 		this.cx.stroke();
 		this.cx.beginPath();
-		this.cx.moveTo(e.clientX, e.clientY - 56);
+		this.cx.moveTo(e.clientX - this.canvas.offsetLeft, e.clientY - this.canvas.offsetTop);
 	}
 }

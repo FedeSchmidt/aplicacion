@@ -1,10 +1,11 @@
 <div class="row justify-content-around">
-    
+
     <div class="col-3 mt-1 mb-1 generales">
         <h5>Parámetros Generales</h5>
         <div>
             <h6>Learning ratio</h6>
-            <input type="number" step=".01" class="form-control" [(ngModel)]="learning_ratio" (change)="actualizarCodigo()">
+            <input type="number" step=".01" class="form-control" [(ngModel)]="learning_ratio"
+                (change)="actualizarCodigo()">
         </div>
         <div>
             <h6>Epochs (Ciclos)</h6>
@@ -15,15 +16,15 @@
             <select class="form-control" name="metrics" [(ngModel)]="metric" (change)="actualizarCodigo()">
                 <option *ngFor="let metric of metricas">{{metric}}</option>
                 <!-- <option>Accuracy</option> -->
-                
+
             </select>
         </div>
 
         <div>
             <h6>Cost Function</h6>
             <select class="form-control" name="cost_function" [(ngModel)]="cost_function" (change)="actualizarCodigo()">
-                    <option *ngFor="let loss of loss_functions">{{loss}}</option>
-                
+                <option *ngFor="let loss of loss_functions">{{loss}}</option>
+
             </select>
         </div>
         <div>
@@ -41,14 +42,16 @@
                 <option>L1</option>
                 <option>L2</option>
             </select>
-            <input type="number" step=".01" class="form-control regularizacion ml-1" [disabled]="regularization == 'Ninguno'" [(ngModel)]="regularization_ratio">
-            
-        </div>
-        
-                <button type="button" class="btn btn-primary boton boton-cargar" (click)="recuperarModelo()">Cargar Modelo</button>
-        
+            <input type="number" step=".01" class="form-control regularizacion ml-1"
+                [disabled]="regularization == 'Ninguno'" [(ngModel)]="regularization_ratio">
 
-        
+        </div>
+
+        <button type="button" class="btn btn-primary boton boton-cargar" (click)="recuperarModelo()">Cargar
+            Modelo</button>
+
+
+
     </div>
 
     <div class="col-7 table-responsive">
@@ -71,103 +74,93 @@
 
                     <td>{{ i }}</td>
                     <td>
-                        <select class="form-control" (change)="onChange($event.target.value, 'type', i)" [disabled]="i == 0">
+                        <select class="form-control" (change)="onChange($event.target.value, 'type', i)"
+                            [disabled]="i == 0">
                             <option *ngFor="let tipo of tipos_capas" [selected]="tipo == layer.type">{{tipo}}</option>
                         </select>
                     </td>
                     <td>
-                        <input type="number" class="form-control" (change)="onChange($event.target.value, 'units', i)" [disabled]="i == 0" value={{layer.units}}>
+                        <input type="number" class="form-control" (change)="onChange($event.target.value, 'units', i)"
+                            [disabled]="i == 0" value={{layer.units}}>
                     </td>
                     <td>
-                        <select class="form-control" (change)="onChange($event.target.value, 'activation', i)" [disabled]="i == 0">
-                                <option *ngFor="let tipo of activations" [selected]="tipo == layer.activation">{{tipo}}</option>
+                        <select class="form-control" (change)="onChange($event.target.value, 'activation', i)"
+                            [disabled]="i == 0">
+                            <option *ngFor="let tipo of activations" [selected]="tipo == layer.activation">{{tipo}}
+                            </option>
                         </select>
                     </td>
                     <td *ngIf="i != 0"><i class="fas fa-times" (click)="removeLayer(i)"></i></td>
-                    
+
                 </tr>
-                
-                
+
+
             </tbody>
         </table>
-        
+
     </div>
-    
-    
+
+
 </div>
 
 <div class="row justify-content-around entrenamiento">
     <div class="col-11">
-        
 
-        <button type="button" class="btn btn-primary btn-entrenar boton" (click)="entrenar()" [disabled]="entrenando">¡Entrenar!</button>
+        <button type="button" class="btn btn-primary btn-entrenar boton" (click)="entrenar()"
+            [disabled]="entrenando">¡Entrenar!</button>
+        <button type="button" class="btn btn-primary boton boton-guardar" (click)="guardarModelo()"
+            [disabled]="progreso != 100">Guardar</button>
         <div [ngClass]="{'progress train-bar' : true, 'progress-opaco': !entrenando}">
-            
-            <div class="progress-bar progress-bar-striped bg-success" role="progressbar" [style.width]="progreso + '%' " aria-valuemin="0" aria-valuemax="100"></div>
-            
-                <span>{{progreso}} %</span>
-            
-          </div>
-          <button type="button" class="btn btn-primary boton boton-guardar" (click)="guardarModelo()" [disabled]="progreso != 100">Guardar</button>
-          <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !entrenando}">
-              <!-- <h5>Validation Accuracy final: {{ validation_accuracy }} %</h5> -->
-              <h5>Accuracy (Conjunto de entrenamiento): {{ trainset_accuracy }}</h5>
-              <h5>Accuracy (Conjunto de test): {{ test_accuracy }}</h5>
-            </div>
+            <div class="progress-bar progress-bar-striped bg-success" role="progressbar" [style.width]="progreso + '%' "
+            aria-valuemin="0" aria-valuemax="100"></div>
+            <span>{{progreso}} %</span>
+        </div>
+        <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !entrenando}">
+            <h6>Accuracy (Conjunto de entrenamiento): {{ trainset_accuracy }}</h6>
+            <h6>Accuracy (Conjunto de test): {{ test_accuracy }}</h6>
+        </div>
     </div>
-    <!-- <div class="col-3">
-    </div> -->
+
 </div>
 
 <!-- código equivalente -->
 <div class="row justify-content-center codigo">
-    
-        <div class="col-4"  id="model-code">
-            <p *ngFor="let sentencia of model_code">{{sentencia}}</p>
-        </div>
-        <div class="col-4"  id="compile-code">
-            <div>
 
-                <p *ngFor="let sentencia of compile_code">{{sentencia}}</p>
-            </div>
+    <div class="col-4" id="model-code">
+        <p *ngFor="let sentencia of model_code">{{sentencia}}</p>
+    </div>
+    <div class="col-4" id="compile-code">
+        <div>
+
+            <p *ngFor="let sentencia of compile_code">{{sentencia}}</p>
         </div>
-        <div class="col-4"  id="train-code">
-                <p *ngFor="let sentencia of train_code">{{sentencia}}</p>
-        </div>
-    
+    </div>
+    <div class="col-4" id="train-code">
+        <p *ngFor="let sentencia of train_code">{{sentencia}}</p>
+    </div>
+
 </div>
-
 
 <div class="row justify-content-around mt-1">
     <div class="col-11" id="example-preview">
-        
-                
-                <div  *ngFor="let item of examples_test; let i = index;" class="prediction-container" [style.visibility]="!ejemplos_cargados? 'hidden': 'visible'">
-                    <canvas class="prediction-canvas" id="canvas{{item}}"></canvas>
-                    <div *ngIf="ejemplos_cargados">Predicción: {{prediction_nuevas[item]}}</div>
-                    <div *ngIf="ejemplos_cargados">Real: {{prediction_labels[item]}}</div>
-                </div>
-                
-           
-            
-        
-        
-            <!-- <canvas id="canvas" width="280" height="280"></canvas>
-            <canvas id="canvas2" width="28" height="28"></canvas>
-            <button type="button" class="btn btn-primary ml-1" (click)="clearCanvas()">Clear</button>
-            <button type="button" class="btn btn-primary ml-1" (click)="predict()">Predict</button>
-            <h5>Predicción: {{ prediction }}</h5> -->
-            
+
+        <div *ngFor="let item of examples_test; let i = index;" class="prediction-container"
+            [style.visibility]="!ejemplos_cargados? 'hidden': 'visible'">
+            <canvas class="prediction-canvas" id="canvas{{item}}"></canvas>
+            <div *ngIf="ejemplos_cargados">Predicción: {{prediction_nuevas[item]}}</div>
+            <div *ngIf="ejemplos_cargados">Real: {{prediction_labels[item]}}</div>
+        </div>
+
     </div>
 
 </div>
 
 <div class="row justify-content-center mt-1">
     <div class="col-11">
-            <canvas id="predict-canvas" width="140" height="140"></canvas>
-            <canvas id="preview-canvas" width="28" height="28"></canvas>
-            <button type="button" class="btn btn-primary ml-1" (click)="clearCanvas()">Clear</button>
-            <button type="button" class="btn btn-primary ml-1" (click)="predict()">Predict</button>
-            <h5>Predicción: {{ prediction }}</h5> 
+        <canvas id="predict-canvas" width="140" height="140"></canvas>
+        <canvas id="preview-canvas" width="28" height="28"></canvas>
+        <button type="button" class="btn btn-primary ml-1" (click)="clearCanvas()">Clear</button>
+        <button type="button" class="btn btn-primary ml-1" (click)="predict()">Predict</button>
+        <h5>Predicción: {{ prediction }}</h5>
     </div>
 </div>

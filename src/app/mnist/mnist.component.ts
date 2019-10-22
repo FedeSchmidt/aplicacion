@@ -41,11 +41,8 @@ export class MnistComponent implements OnInit {
 	cantLayers = 1;
 
 	painting = false;
-	cx: CanvasRenderingContext2D;
-	canvas: HTMLCanvasElement;
-	clickX = [];
-	clickY = [];
-	clickDrag = [];
+	canvas;
+	cx;
 
 	// parámetros generales
 	learning_ratio = 0.1;
@@ -87,12 +84,12 @@ export class MnistComponent implements OnInit {
 	ngOnInit() {
 		this.armarRedBase();
 
-		let canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
-		let context = canvas.getContext('2d');
+		this.canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
+		this.cx = this.canvas.getContext('2d');
 
-		canvas.addEventListener('mousedown', this.startPosition);
-		canvas.addEventListener('mouseup', this.finishedPosition);
-		canvas.addEventListener('mousemove', this.mouseMove);
+		this.canvas.addEventListener('mousedown', this.startPosition);
+		this.canvas.addEventListener('mouseup', this.finishedPosition);
+		this.canvas.addEventListener('mousemove', this.mouseMove);
 	}
 
 	async guardarModelo() {
@@ -111,7 +108,8 @@ export class MnistComponent implements OnInit {
 		localStorage.setItem('neural_model_IA', JSON.stringify(obj));
 
 		if (this.modelo_entrenado) {
-			await this.model.save('indexeddb://model_IA').then((response) => {
+			console.log('guardando modelo');
+			await this.model.save('downloads://model_IA').then((response) => {
 				console.log(response);
 			});
 		}
@@ -402,9 +400,7 @@ export class MnistComponent implements OnInit {
 			1
 		]);
 		const labels = tf.tensor2d(this.trainLabels, [ this.trainLabels.length / this.NUM_CLASSES, this.NUM_CLASSES ]);
-		// console.log(xs);
-		// console.log(labels);
-		console.log('final de get train data');
+
 		return { xs, labels };
 	}
 
@@ -421,7 +417,6 @@ export class MnistComponent implements OnInit {
 			xs = xs.slice([ 0, 0, 0, 0 ], [ numExamples, this.IMAGE_H, this.IMAGE_W, 1 ]);
 			labels = labels.slice([ 0, 0 ], [ numExamples, this.NUM_CLASSES ]);
 		}
-		console.log('final de get test data');
 
 		return { xs, labels };
 	}
@@ -440,7 +435,13 @@ export class MnistComponent implements OnInit {
 
 		let y_pred = this.model.predict(x_data);
 
-		this.prediction = Array.from(y_pred.argMax(1).dataSync());
+		this.predictions = Array.from(y_pred.dataSync());
+		console.log(this.predictions);
+		console.log(y_pred.argMax(1).dataSync());
+		this.prediction = this.predictions.indexOf(Math.max(...this.predictions));
+
+		// this.prediction = Array.from(y_pred.argMax(1).dataSync());
+		// console.log(this.prediction);
 	}
 
 	clearCanvas() {
@@ -482,22 +483,36 @@ export class MnistComponent implements OnInit {
 		return resized;
 	}
 
-	startPosition(e) {
+	startPosition() {
 		this.painting = true;
-		// let canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
-		// let context = canvas.getContext('2d');
 	}
 
 	finishedPosition() {
 		this.painting = false;
 
-		let canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
-		canvas.getContext('2d').closePath();
+		if (this.canvas == undefined) {
+			this.canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
+			this.cx = this.canvas.getContext('2d');
+		}
+		this.cx.beginPath();
 	}
 
 	mouseMove(e) {
-		let canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
-		let context = canvas.getContext('2d');
+		//console.log(e);
+		if (!this.painting) return;
+		if (this.canvas == undefined) {
+			this.canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
+			this.cx = this.canvas.getContext('2d');
+		}
+
+		const rect = this.canvas.getBoundingClientRect();
+
+		this.cx.lineWidth = 8;
+		this.cx.lineCap = 'round';
+		this.cx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+		this.cx.stroke();
+		this.cx.beginPath();
+		this.cx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
 	}
 
 	newLayer() {

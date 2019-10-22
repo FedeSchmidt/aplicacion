@@ -13,7 +13,8 @@
 	background-color: #05668d;
 }
 
-#predict-canvas {
+#predict-canvas,
+#preview-canvas {
 	border: 1px solid black;
 
 	background: white;
@@ -130,34 +131,20 @@ table {
 }
 
 .entrenamiento {
-	align-items: center;
-	height: 100%;
 	.btn-entrenar {
 		display: inline-block;
 		margin: 10px 10px 10px 0px;
 	}
 
-	.btn-entrenar:disabled {
-		opacity: 0.4;
-	}
 	.train-bar {
-		width: 80%;
-		display: inline-block;
-		height: 38px;
-		vertical-align: middle;
+		height: auto;
 		align-items: center;
+		border: 1px solid #05668d;
 
-		.progress-bar {
-			text-align: center;
-			position: relative;
-		}
 		span {
 			position: absolute;
-			top: 10px;
-			z-index: 2;
-			font-size: x-large;
-			color: black;
 			text-align: center;
+			font-size: x-large;
 		}
 	}
 
@@ -178,17 +165,9 @@ table {
 		margin: 10px 0px;
 		display: inline-block;
 	}
-	// .progreso {
-	// 	text-align: center;
-	// 	vertical-align: middle;
-	// 	font-size: x-large;
-	// 	color: black;
-	// 	z-index: -1000;
-	// }
 
 	.boton-guardar {
 		// display: inline-block;
-		float: right;
 		margin: 10px 0px;
 	}
 }
