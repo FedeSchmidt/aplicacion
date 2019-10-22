@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
 import { Layer } from './../models/layer';
 import { JsonPipe } from '@angular/common';
-import { Path } from 'paper';
 
 @Component({
 	selector: 'app-mnist',
