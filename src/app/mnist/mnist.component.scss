@@ -141,10 +141,14 @@ table {
 		align-items: center;
 		border: 1px solid #05668d;
 
+		.progress-bar {
+			text-align: center;
+		}
+
 		span {
 			position: absolute;
-			text-align: center;
 			font-size: x-large;
+			text-align: center;
 		}
 	}
 
@@ -178,11 +182,17 @@ table {
 }
 .codigo {
 	text-align: center;
+	font-size: small;
+	.btn-mostrar-codigo {
+		color: white;
+		background-color: #05668d;
+		font-size: initial;
+		margin: 5px;
+		padding: 5px 0px;
+	}
 	#model-code {
 		margin: 10px 0px;
 		padding: 30px;
-		// // overflow: auto;
-		// overflow-x: scroll;
 	}
 	#compile-code {
 		margin: 10px 0px;
@@ -193,13 +203,31 @@ table {
 	#train-code {
 		margin: 10px 0px;
 		padding: 30px;
-		// overflow-x: scroll;
 	}
 
 	p {
 		margin: 5px 0px;
 		text-align: start;
 		white-space: pre;
+	}
+
+	@media (max-width: 1199px) {
+		#model-code {
+			padding: 15px;
+			margin: 0;
+		}
+		#compile-code {
+			margin: 0;
+			padding: 15px;
+			border-top: 1px dashed #05668d;
+			border-bottom: 1px dashed #05668d;
+			border-right: none;
+			border-left: none;
+		}
+		#train-code {
+			margin: 0;
+			padding: 15px;
+		}
 	}
 }
 

@@ -79,6 +79,8 @@ export class MnistComponent implements OnInit {
 	img_src = '';
 	dataImg;
 
+	mostrar_codigo = false;
+
 	constructor() {}
 
 	ngOnInit() {
