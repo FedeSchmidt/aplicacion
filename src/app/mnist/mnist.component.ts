@@ -94,6 +94,10 @@ export class MnistComponent implements OnInit {
 		this.canvas.addEventListener('mousemove', this.mouseMove);
 	}
 
+	showCodigos() {
+		this.mostrar_codigo = !this.mostrar_codigo;
+	}
+
 	async guardarModelo() {
 		let obj = {
 			learning_ratio: this.learning_ratio,
@@ -416,8 +420,10 @@ export class MnistComponent implements OnInit {
 		let labels = tf.tensor2d(this.testLabels, [ this.testLabels.length / this.NUM_CLASSES, this.NUM_CLASSES ]);
 
 		if (numExamples != null) {
-			xs = xs.slice([ 0, 0, 0, 0 ], [ numExamples, this.IMAGE_H, this.IMAGE_W, 1 ]);
-			labels = labels.slice([ 0, 0 ], [ numExamples, this.NUM_CLASSES ]);
+			const r = Math.floor(Math.random() * (this.testImages.length / this.IMAGE_SIZE + 1)) - 10;
+			console.log(r);
+			xs = xs.slice([ r, 0, 0, 0 ], [ numExamples, this.IMAGE_H, this.IMAGE_W, 1 ]);
+			labels = labels.slice([ r, 0 ], [ numExamples, this.NUM_CLASSES ]);
 		}
 
 		return { xs, labels };
