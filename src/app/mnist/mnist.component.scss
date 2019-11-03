@@ -15,9 +15,13 @@
 
 #predict-canvas,
 #preview-canvas {
-	border: 1px solid black;
+	border: 1px solid #05668d;
+	border-radius: 3px;
 
 	background: white;
+}
+#preview-canvas {
+	margin-left: 10px;
 }
 
 .boton {
@@ -257,4 +261,9 @@ table {
 	font-size: large;
 	margin: 10px 0px;
 	text-align: center;
+}
+
+.botones-canvas,
+.canvaces {
+	margin: 10px 0px;
 }

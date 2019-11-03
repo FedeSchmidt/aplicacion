@@ -265,7 +265,7 @@ export class MnistComponent implements OnInit {
 		this.entrenando = true;
 		//this.createModel();
 		this.load().then(() => {
-			this.model = this.createDenseModel();
+			this.model = this.createModel();
 			this.train().then(() => {
 				this.test_data = this.getTestData(10);
 				// let y_pred = this.model.predict(data.xs);
