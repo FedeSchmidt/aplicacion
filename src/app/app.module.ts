@@ -1,3 +1,4 @@
+import { InformacionComponent } from './informacion/informacion.component';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
@@ -7,27 +8,18 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
-import { LinearComponent } from './linear/linear.component';
 import { MnistComponent } from './mnist/mnist.component';
-import { ModelmakerComponent } from './modelmaker/modelmaker.component';
-import { CodigoComponent } from './codigo/codigo.component';
 import { NavbarComponent } from './navbar/navbar.component';
 
 const appRoutes: Routes = [
 	{ path: '', component: MnistComponent },
 	// { path: 'linear', component: LinearComponent },
-	{ path: 'mnist', component: MnistComponent }
+	{ path: 'mnist', component: MnistComponent },
+	{ path: 'info', component: InformacionComponent }
 ];
 
 @NgModule({
-	declarations: [
-		AppComponent,
-		LinearComponent,
-		MnistComponent,
-		ModelmakerComponent,
-		CodigoComponent,
-		NavbarComponent
-	],
+	declarations: [ AppComponent, MnistComponent, NavbarComponent, InformacionComponent ],
 	imports: [
 		BrowserModule,
 		BrowserAnimationsModule,

@@ -1,0 +1,88 @@
+<div class="row justify-content-center">
+        
+    <div class="col-8 mt-2">
+        <div *ngIf="expanded.mnist; then a1 else a2"></div>
+        <ng-template #a1>
+            <div class="titulo" (click)="show('mnist')">MNIST Dataset <i class="fas fa-sort-up float-right"></i></div>
+            <div class="informacion">{{data.mnist}}</div>
+            
+        </ng-template>
+        <ng-template #a2>
+            <div class="titulo" (click)="show('mnist')">MNIST Dataset <i class="fas fa-sort-down float-right"></i></div>
+        </ng-template>
+        
+        <div *ngIf="expanded.learning_rate; then b1 else b2"></div>
+        <ng-template #b1>
+            <div class="titulo" (click)="show('learning_rate')">Learning Ratio <i class="fas fa-sort-up float-right"></i></div>
+            <div class="informacion">{{data.learning_rate}}</div>
+            
+        </ng-template>
+        <ng-template #b2>
+            <div class="titulo" (click)="show('learning_rate')">Learning Ratio <i class="fas fa-sort-down float-right"></i></div>
+        </ng-template>
+        
+        
+        <div *ngIf="expanded.ciclos; then c1 else c2"></div>
+        <ng-template #c1>
+            <div class="titulo" (click)="show('ciclos')">Ciclos <i class="fas fa-sort-up float-right"></i></div>
+            <div class="informacion">{{data.ciclos}}</div>
+            
+        </ng-template>
+        <ng-template #c2>
+            <div class="titulo" (click)="show('ciclos')">Ciclos <i class="fas fa-sort-down float-right"></i></div>
+        </ng-template>
+        
+        
+        <div *ngIf="expanded.metric; then d1 else d2"></div>
+        <ng-template #d1>
+            <div class="titulo" (click)="show('metric')">Métrica <i class="fas fa-sort-up float-right"></i></div>
+            <div class="informacion">{{data.metric}}</div>
+            
+        </ng-template>
+        <ng-template #d2>
+            <div class="titulo" (click)="show('metric')">Métrica <i class="fas fa-sort-down float-right"></i></div>
+        </ng-template>
+        
+        <div *ngIf="expanded.cost_function; then e1 else e2"></div>
+        <ng-template #e1>
+            <div class="titulo" (click)="show('cost_function')">Función de Costo <i class="fas fa-sort-up float-right"></i></div>
+            <div class="informacion">{{data.cost_function}}</div>
+            
+        </ng-template>
+        <ng-template #e2>
+            <div class="titulo" (click)="show('cost_function')">Función de Costo <i class="fas fa-sort-down float-right"></i></div>
+        </ng-template>
+        
+        <div *ngIf="expanded.batch_size; then f1 else f2"></div>
+        <ng-template #f1>
+            <div class="titulo" (click)="show('batch_size')">Batch size <i class="fas fa-sort-up float-right"></i></div>
+            <div class="informacion">{{data.batch_size}}</div>
+            
+        </ng-template>
+        <ng-template #f2>
+            <div class="titulo" (click)="show('batch_size')">Batch size <i class="fas fa-sort-down float-right"></i></div>
+        </ng-template>
+        
+        <div *ngIf="expanded.estructura; then g1 else g2"></div>
+        <ng-template #g1>
+            <div class="titulo" (click)="show('estructura')">Estrutura de una Red Neuronal <i class="fas fa-sort-up float-right"></i></div>
+            <div class="informacion">{{data.estructura}}</div>
+
+        </ng-template>
+        <ng-template #g2>
+                <div class="titulo" (click)="show('estructura')">Estrutura de una Red Neuronal <i class="fas fa-sort-down float-right"></i></div>
+        </ng-template>
+
+        <div *ngIf="expanded.activacion; then h1 else h2"></div>
+        <ng-template #h1>
+            <div class="titulo" (click)="show('activacion')">Funciones de Activación de las Neuronas <i class="fas fa-sort-up float-right"></i></div>
+            <div class="informacion">{{data.activacion}}</div>
+
+        </ng-template>
+        <ng-template #h2>
+                <div class="titulo" (click)="show('activacion')">Funciones de Activación de las Neuronas <i class="fas fa-sort-down float-right"></i></div>
+        </ng-template>
+        
+        
+    </div>
+</div>

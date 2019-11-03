@@ -1,0 +1,27 @@
+.row {
+	margin: 0;
+}
+.texto {
+	padding: 15px 10px;
+	text-align: justify;
+}
+
+.titulo {
+	background: #05668d;
+	color: white;
+	font-size: large;
+	padding: 10px 20px;
+	border: 1px solid #f9f9f9;
+}
+
+.titulo:hover {
+	cursor: pointer;
+}
+
+.informacion {
+	text-align: justify;
+	padding: 20px 30px;
+	background: #e9ecef;
+	border-left: 1px solid #f9f9f9;
+	border-right: 1px solid #f9f9f9;
+}
