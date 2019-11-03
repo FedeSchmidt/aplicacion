@@ -80,22 +80,59 @@ export class MnistComponent implements OnInit {
 	dataImg;
 
 	mostrar_codigo = false;
+	mostrar_ejemplos = false;
+	mostrar_canvas = false;
+	canvases: any = [];
+
+	test_data;
 
 	constructor() {}
 
 	ngOnInit() {
 		this.armarRedBase();
 
-		this.canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
-		this.cx = this.canvas.getContext('2d');
+		// this.canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
+		// this.cx = this.canvas.getContext('2d');
 
-		this.canvas.addEventListener('mousedown', this.startPosition);
-		this.canvas.addEventListener('mouseup', this.finishedPosition);
-		this.canvas.addEventListener('mousemove', this.mouseMove);
+		// this.canvas.addEventListener('mousedown', this.startPosition);
+		// this.canvas.addEventListener('mouseup', this.finishedPosition);
+		// this.canvas.addEventListener('mousemove', this.mouseMove);
 	}
 
 	showCodigos() {
 		this.mostrar_codigo = !this.mostrar_codigo;
+	}
+	showEjemplos() {
+		this.mostrar_ejemplos = !this.mostrar_ejemplos;
+
+		if (this.modelo_entrenado) {
+			let y_pred = this.model.predict(this.test_data.xs);
+			const labels = Array.from(this.test_data.labels.argMax(1).dataSync());
+			const predictions = Array.from(y_pred.argMax(1).dataSync());
+			this.prediction_labels = labels;
+			this.prediction_nuevas = predictions;
+			this.ejemplos_cargados = true;
+
+			const testExamples = this.test_data.xs.shape[0];
+			this.draw3(testExamples);
+
+			// for (let i = 0; i < testExamples; i++) {
+			// 	const image = this.test_data.xs.slice([ i, 0 ], [ 1, this.test_data.xs.shape[1] ]);
+
+			// 	let canvas = document.getElementById('canvas' + i);
+
+			// 	this.draw(image.flatten(), canvas);
+			// }
+		}
+	}
+	showCanvas() {
+		this.mostrar_canvas = !this.mostrar_canvas;
+		// this.canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
+		// this.cx = this.canvas.getContext('2d');
+
+		// this.canvas.addEventListener('mousedown', this.startPosition);
+		// this.canvas.addEventListener('mouseup', this.finishedPosition);
+		// this.canvas.addEventListener('mousemove', this.mouseMove);
 	}
 
 	async guardarModelo() {
@@ -230,23 +267,23 @@ export class MnistComponent implements OnInit {
 		this.load().then(() => {
 			this.model = this.createDenseModel();
 			this.train().then(() => {
-				let data = this.getTestData(10);
-				let y_pred = this.model.predict(data.xs);
-				const labels = Array.from(data.labels.argMax(1).dataSync());
-				const predictions = Array.from(y_pred.argMax(1).dataSync());
-				this.prediction_labels = labels;
-				this.prediction_nuevas = predictions;
-				this.ejemplos_cargados = true;
+				this.test_data = this.getTestData(10);
+				// let y_pred = this.model.predict(data.xs);
+				// const labels = Array.from(data.labels.argMax(1).dataSync());
+				// const predictions = Array.from(y_pred.argMax(1).dataSync());
+				// this.prediction_labels = labels;
+				// this.prediction_nuevas = predictions;
+				// this.ejemplos_cargados = true;
 
-				const testExamples = data.xs.shape[0];
+				// const testExamples = data.xs.shape[0];
 
-				for (let i = 0; i < testExamples; i++) {
-					const image = data.xs.slice([ i, 0 ], [ 1, data.xs.shape[1] ]);
+				// for (let i = 0; i < testExamples; i++) {
+				// 	const image = data.xs.slice([ i, 0 ], [ 1, data.xs.shape[1] ]);
 
-					let canvas = document.getElementById('canvas' + i);
+				// 	let canvas = document.getElementById('canvas' + i);
 
-					this.draw(image.flatten(), canvas);
-				}
+				// 	this.draw(image.flatten(), canvas);
+				// }
 			});
 		});
 		this.entrenando = true;
@@ -267,6 +304,34 @@ export class MnistComponent implements OnInit {
 			imageData.data[j + 3] = 255;
 		}
 		ctx.putImageData(imageData, 0, 0);
+	}
+
+	draw3(testExamples) {
+		for (let i = 0; i < testExamples; i++) {
+			const im = this.test_data.xs.slice([ i, 0 ], [ 1, this.test_data.xs.shape[1] ]);
+
+			let canvas = <HTMLCanvasElement>document.createElement('canvas');
+			// let canvas = document.createElement('canvas');
+			// document.getElementById('div_test_canvas').appendChild(canvas);
+			//this.draw(image.flatten(), canvas);
+			let image = im.flatten();
+			const [ width, height ] = [ 28, 28 ];
+			canvas.width = width;
+			canvas.height = height;
+			const ctx = canvas.getContext('2d');
+			const imageData = new ImageData(width, height);
+			const data = image.dataSync();
+			for (let i = 0; i < height * width; ++i) {
+				const j = i * 4;
+				imageData.data[j + 0] = data[i] * 255;
+				imageData.data[j + 1] = data[i] * 255;
+				imageData.data[j + 2] = data[i] * 255;
+				imageData.data[j + 3] = 255;
+			}
+			ctx.putImageData(imageData, 0, 0);
+
+			this.canvases.push(canvas);
+		}
 	}
 
 	async train() {
@@ -301,8 +366,6 @@ export class MnistComponent implements OnInit {
 
 		let valAcc;
 		let trainsetAcc;
-
-		console.log('antes del fit');
 
 		await this.model.fit(trainData.xs, trainData.labels, {
 			batchSize,
@@ -395,7 +458,6 @@ export class MnistComponent implements OnInit {
 		this.testImages = this.datasetImages.slice(this.IMAGE_SIZE * this.NUM_TRAIN_ELEMENTS);
 		this.trainLabels = this.datasetLabels.slice(0, this.NUM_CLASSES * this.NUM_TRAIN_ELEMENTS);
 		this.testLabels = this.datasetLabels.slice(this.NUM_CLASSES * this.NUM_TRAIN_ELEMENTS);
-		console.log('hasta el final del load bien');
 	}
 
 	getTrainData() {

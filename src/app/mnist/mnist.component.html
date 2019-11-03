@@ -3,39 +3,41 @@
     <div class="col-12 col-md-3 mt-1 mb-1 generales">
         <h5>Parámetros Generales</h5>
         <div>
-            <h6>Learning ratio</h6>
+            <h6>Learning ratio <i class="fas fa-info-circle ml-1" title="informacion"></i></h6>
+           
+            
+            
             <input type="number" step=".01" class="form-control" [(ngModel)]="learning_ratio"
                 (change)="actualizarCodigo()">
         </div>
         <div>
-            <h6>Epochs (Ciclos)</h6>
+            <h6>Epochs (Ciclos) <i class="fas fa-info-circle ml-1"></i></h6>
             <input type="number" class="form-control" name="epochs" [(ngModel)]="epochs" (change)="actualizarCodigo()">
         </div>
         <div>
-            <h6>Métrica</h6>
+            <h6>Métrica <i class="fas fa-info-circle ml-1"></i></h6>
             <select class="form-control" name="metrics" [(ngModel)]="metric" (change)="actualizarCodigo()">
                 <option *ngFor="let metric of metricas">{{metric}}</option>
-                <!-- <option>Accuracy</option> -->
 
             </select>
         </div>
 
         <div>
-            <h6>Cost Function</h6>
+            <h6>Cost Function <i class="fas fa-info-circle ml-1"></i></h6>
             <select class="form-control" name="cost_function" [(ngModel)]="cost_function" (change)="actualizarCodigo()">
                 <option *ngFor="let loss of loss_functions">{{loss}}</option>
 
             </select>
         </div>
         <div>
-            <h6>Batch Size</h6>
+            <h6>Batch Size <i class="fas fa-info-circle ml-1"></i></h6>
             <div class="input-batch" (change)="actualizarCodigo()">
 
                 <input type="checkbox" class="form-check-input" value="batch_size" [(ngModel)]="batch_check">
                 <input type="number" class="form-control " [(ngModel)]="batch_size" [disabled]="!batch_check">
             </div>
         </div>
-        <div>
+        <!-- <div>
             <h6>Regularización</h6>
             <select name="regularizacion" id="" class="form-control regularizacion" [(ngModel)]="regularization">
                 <option>Ninguno</option>
@@ -45,7 +47,7 @@
             <input type="number" step=".01" class="form-control regularizacion ml-1"
                 [disabled]="regularization == 'Ninguno'" [(ngModel)]="regularization_ratio">
 
-        </div>
+        </div> -->
 
         <button type="button" class="btn btn-primary boton boton-cargar" (click)="recuperarModelo()">Cargar
             Modelo</button>
@@ -112,8 +114,8 @@
             [disabled]="progreso != 100">Guardar</button>
         <div [ngClass]="{'progress train-bar' : true, 'progress-opaco': !entrenando}">
             <div class="progress-bar progress-bar-striped bg-success" role="progressbar" [style.width]="progreso + '%' "
-            aria-valuemin="0" aria-valuemax="100"></div>
-            <span>{{progreso}} %</span>
+                aria-valuemin="0" aria-valuemax="100"></div>
+            <span class="col-12">{{progreso}} %</span>
         </div>
         <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !entrenando}">
             <h6>Accuracy (Conjunto de entrenamiento): {{ trainset_accuracy }}</h6>
@@ -127,47 +129,75 @@
 <div class="row justify-content-center codigo">
     <div *ngIf="mostrar_codigo; then mostrarCodigo else noMostrarCodigo"></div>
     <ng-template #mostrarCodigo>
-            <div class="col-12 btn-mostrar-codigo" (click)="showCodigos()">Código<i class="fas fa-caret-up ml-2"></i></div>
+        <div class="col-12 btn-mostrar-codigo" (click)="showCodigos()">Código<i class="fas fa-caret-up ml-2"></i></div>
 
-            <div class="col-12 col-xl-4" id="model-code">
-                <p *ngFor="let sentencia of model_code">{{sentencia}}</p>
+        <div class="col-12 col-xl-4" id="model-code">
+            <p *ngFor="let sentencia of model_code">{{sentencia}}</p>
+        </div>
+        <div class="col-12 col-xl-4" id="compile-code">
+            <div>
+
+                <p *ngFor="let sentencia of compile_code">{{sentencia}}</p>
             </div>
-            <div class="col-12 col-xl-4" id="compile-code">
-                <div>
-        
-                    <p *ngFor="let sentencia of compile_code">{{sentencia}}</p>
-                </div>
-            </div>
-            <div class="col-12 col-xl-4" id="train-code">
-                <p *ngFor="let sentencia of train_code">{{sentencia}}</p>
-            </div>
+        </div>
+        <div class="col-12 col-xl-4" id="train-code">
+            <p *ngFor="let sentencia of train_code">{{sentencia}}</p>
+        </div>
     </ng-template>
     <ng-template #noMostrarCodigo>
-            <div class="col-12 btn-mostrar-codigo" (click)="showCodigos()">Código<i class="fas fa-caret-down ml-2"></i></div>
-            
+        <div class="col-12 btn-mostrar-codigo" (click)="showCodigos()">Código<i class="fas fa-caret-down ml-2"></i>
+        </div>
+
     </ng-template>
 </div>
 
-<div class="row justify-content-around mt-1">
-    <div class="col-11" id="example-preview">
-
-        <div *ngFor="let item of examples_test; let i = index;" class="prediction-container"
-            [style.visibility]="!ejemplos_cargados? 'hidden': 'visible'">
-            <canvas [ngClass]="{'prediction-canvas': true, 'canvas-rojo': ejemplos_cargados && prediction_nuevas[item] !== prediction_labels[item]}" id="canvas{{item}}"></canvas>
-            <div *ngIf="ejemplos_cargados">Predicción: {{prediction_nuevas[item]}}</div>
-            <div *ngIf="ejemplos_cargados">Real: {{prediction_labels[item]}}</div>
-        </div>
-
-    </div>
+<div class="row justify-content-center codigo">
+    
+        <div *ngIf="mostrar_ejemplos; then mostrarEjemplos else noMostrarEjemplos"></div>
+        <ng-template #mostrarEjemplos>
+            <div class="col-12 btn-mostrar-codigo" (click)="showEjemplos()">Ejemplos de Test<i
+                    class="fas fa-caret-up ml-2"></i></div>
+            <div *ngIf="modelo_entrenado; then hayEjemplos else noHayEjemplos"></div>
+            <ng-template #hayEjemplos>
+                
+                <!-- [style.visibility]="!ejemplos_cargados? 'hidden': 'visible'"> -->
+                <div *ngFor="let item of examples_test; let i = index;" class="prediction-container" id="div_test_canvas">
+                    <canvas
+                        [ngClass]="{'prediction-canvas': true, 'canvas-rojo': prediction_nuevas[item] !== prediction_labels[item]}"
+                        id="canvas{{item}}"></canvas>
+                   
+                    <div>Predicción: {{prediction_nuevas[item]}}</div>
+                    <div>Real: {{prediction_labels[item]}}</div>
+                </div>
+            </ng-template>
+            <ng-template #noHayEjemplos>
+                <div class="cartel">Por el momento no hay ejemplos de test cargados. Se debe entrenar una red.</div>
+            </ng-template>
+            
+        </ng-template>
+        <ng-template #noMostrarEjemplos>
+            <div class="col-12 btn-mostrar-codigo" (click)="showEjemplos()">Ejemplos de Test<i
+                    class="fas fa-caret-down ml-2"></i></div>
+        </ng-template>
 
 </div>
 
-<div class="row justify-content-center mt-1">
-    <div class="col-11">
+<div class="row justify-content-center codigo">
+
+    <div *ngIf="mostrar_canvas; then mostrarCanvas else noMostrarCanvas"></div>
+    <ng-template #mostrarCanvas>
+        <div class="col-12 btn-mostrar-codigo" (click)="showCanvas()">Nueva Predicción<i
+                class="fas fa-caret-up ml-2"></i></div>
+
         <canvas id="predict-canvas" width="140" height="140"></canvas>
         <canvas id="preview-canvas" width="28" height="28"></canvas>
         <button type="button" class="btn btn-primary ml-1" (click)="clearCanvas()">Clear</button>
         <button type="button" class="btn btn-primary ml-1" (click)="predict()">Predict</button>
         <h5>Predicción: {{ prediction }}</h5>
-    </div>
+    </ng-template>
+    <ng-template #noMostrarCanvas>
+        <div class="col-12 btn-mostrar-codigo" (click)="showCanvas()">Nueva Predicción<i
+                class="fas fa-caret-down ml-2"></i></div>
+    </ng-template>
+
 </div>
