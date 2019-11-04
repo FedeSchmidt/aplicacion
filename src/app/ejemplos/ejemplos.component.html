@@ -1,0 +1,9 @@
+<div *ngIf="examples_length > 0">
+
+    <div *ngFor="let item of examples_test; let i = index;" class="prediction-container"
+    >
+    <canvas class="prediction-canvas" id="canvas{{item}}"></canvas>
+    <div>Predicción: {{nuevas[item]}}</div>
+    <div>Real: {{labels[item]}}</div>
+</div>
+</div>

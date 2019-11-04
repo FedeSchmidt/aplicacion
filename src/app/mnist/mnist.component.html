@@ -112,12 +112,12 @@
             [disabled]="entrenando">¡Entrenar!</button>
         <button type="button" class="btn btn-primary boton boton-guardar" (click)="guardarModelo()"
             [disabled]="progreso != 100">Guardar</button>
-        <div [ngClass]="{'progress train-bar' : true, 'progress-opaco': !entrenando}">
+        <div [ngClass]="{'progress train-bar' : true, 'progress-opaco': !resultados}">
             <div class="progress-bar progress-bar-striped bg-success" role="progressbar" [style.width]="progreso + '%' "
                 aria-valuemin="0" aria-valuemax="100"></div>
             <span class="col-12">{{progreso}} %</span>
         </div>
-        <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !entrenando}">
+        <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !resultados}">
             <h6>Accuracy (Conjunto de entrenamiento): {{ trainset_accuracy }}</h6>
             <h6>Accuracy (Conjunto de test): {{ test_accuracy }}</h6>
         </div>
@@ -152,24 +152,42 @@
 </div>
 
 <div class="row justify-content-center codigo">
+
+        <div class="col-11" id="example-preview">
+            <div *ngIf="!ejemplos_cargados" class="cartel">Por el momento no hay ejemplos de test cargados. Se debe entrenar una red.</div>
+            <div>
+
+                <div *ngFor="let item of examples_test; let i = index;" class="prediction-container"
+                [style.visibility]="!ejemplos_cargados? 'hidden': 'visible'">
+                <canvas class="prediction-canvas" id="canvas{{item}}"></canvas>
+                <div *ngIf="ejemplos_cargados">Predicción: {{prediction_nuevas[item]}}</div>
+                <div *ngIf="ejemplos_cargados">Real: {{prediction_labels[item]}}</div>
+            </div>
+        </div>
+        
+    </div>
+    <!-- <div>ejemplos de test</div><br> -->
+    <!-- <div *ngIf="!ejemplos_cargados">prbando</div> -->
+    <!-- <app-ejemplos [count]="regularization"></app-ejemplos> -->
+    <!-- <app-ejemplos *ngIf ="!ejemplos_cargados" [labels]="prediction_labels" [nuevas]="prediction_nuevas" [examples_length]="testExamplesLength" [data]="test_data" [ngClass]="{'preds' : !ejemplos_cargados}"></app-ejemplos> -->
     
-        <div *ngIf="mostrar_ejemplos; then mostrarEjemplos else noMostrarEjemplos"></div>
+        <!-- <div *ngIf="mostrar_ejemplos; then mostrarEjemplos else noMostrarEjemplos"></div>
         <ng-template #mostrarEjemplos>
             <div class="col-12 btn-mostrar-codigo" (click)="showEjemplos()">Ejemplos de Test<i
                     class="fas fa-caret-up ml-2"></i></div>
             <div *ngIf="modelo_entrenado; then hayEjemplos else noHayEjemplos"></div>
             <ng-template #hayEjemplos>
-                
+                 -->
                 <!-- [style.visibility]="!ejemplos_cargados? 'hidden': 'visible'"> -->
-                <div *ngFor="let item of examples_test; let i = index;" class="prediction-container" id="div_test_canvas">
+                <!-- <div *ngFor="let item of examples_test; let i = index;" class="prediction-container" id="div_test_canvas">
                     <canvas
                         [ngClass]="{'prediction-canvas': true, 'canvas-rojo': prediction_nuevas[item] !== prediction_labels[item]}"
                         id="canvas{{item}}"></canvas>
                    
                     <div>Predicción: {{prediction_nuevas[item]}}</div>
                     <div>Real: {{prediction_labels[item]}}</div>
-                </div>
-            </ng-template>
+                </div> -->
+            <!-- </ng-template>
             <ng-template #noHayEjemplos>
                 <div class="cartel">Por el momento no hay ejemplos de test cargados. Se debe entrenar una red.</div>
             </ng-template>
@@ -178,8 +196,8 @@
         <ng-template #noMostrarEjemplos>
             <div class="col-12 btn-mostrar-codigo" (click)="showEjemplos()">Ejemplos de Test<i
                     class="fas fa-caret-down ml-2"></i></div>
-        </ng-template>
-
+        </ng-template> -->
+   
 </div>
 
 <div class="row justify-content-center codigo">

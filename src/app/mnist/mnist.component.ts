@@ -52,6 +52,7 @@ export class MnistComponent implements OnInit {
 	batch_size = 320;
 
 	entrenando = false;
+	resultados = false;
 	modelo_entrenado = false;
 
 	metricas = [ 'accuracy', 'mean_squared_error' ];
@@ -75,6 +76,8 @@ export class MnistComponent implements OnInit {
 	ejemplos_cargados = false;
 	prediction_labels;
 	prediction_nuevas;
+	testExamplesLength = 0;
+	test_data;
 
 	img_src = '';
 	dataImg;
@@ -83,8 +86,6 @@ export class MnistComponent implements OnInit {
 	mostrar_ejemplos = false;
 	mostrar_canvas = false;
 	canvases: any = [];
-
-	test_data;
 
 	constructor() {}
 
@@ -105,25 +106,27 @@ export class MnistComponent implements OnInit {
 	showEjemplos() {
 		this.mostrar_ejemplos = !this.mostrar_ejemplos;
 
-		if (this.modelo_entrenado) {
-			let y_pred = this.model.predict(this.test_data.xs);
-			const labels = Array.from(this.test_data.labels.argMax(1).dataSync());
-			const predictions = Array.from(y_pred.argMax(1).dataSync());
-			this.prediction_labels = labels;
-			this.prediction_nuevas = predictions;
-			this.ejemplos_cargados = true;
+		// if (this.modelo_entrenado) {
+		// 	let y_pred = this.model.predict(this.test_data.xs);
+		// 	const labels = Array.from(this.test_data.labels.argMax(1).dataSync());
+		// 	const predictions = Array.from(y_pred.argMax(1).dataSync());
+		// 	this.prediction_labels = labels;
+		// 	this.prediction_nuevas = predictions;
+		// 	this.ejemplos_cargados = true;
 
-			const testExamples = this.test_data.xs.shape[0];
-			this.draw3(testExamples);
+		// 	const testExamples = this.test_data.xs.shape[0];
+		// 	//this.draw3(testExamples);
 
-			// for (let i = 0; i < testExamples; i++) {
-			// 	const image = this.test_data.xs.slice([ i, 0 ], [ 1, this.test_data.xs.shape[1] ]);
+		// 	for (let i = 0; i < testExamples; i++) {
+		// 		const image = this.test_data.xs.slice([ i, 0 ], [ 1, this.test_data.xs.shape[1] ]);
 
-			// 	let canvas = document.getElementById('canvas' + i);
+		// 		console.log(image);
 
-			// 	this.draw(image.flatten(), canvas);
-			// }
-		}
+		// 		// 	let canvas = document.getElementById('canvas' + i);
+
+		// 		this.draw(image.flatten(), null);
+		// 	}
+		// }
 	}
 	showCanvas() {
 		this.mostrar_canvas = !this.mostrar_canvas;
@@ -263,30 +266,38 @@ export class MnistComponent implements OnInit {
 	entrenar() {
 		console.log('entrenar');
 		this.entrenando = true;
+		this.resultados = true;
 		//this.createModel();
 		this.load().then(() => {
 			this.model = this.createModel();
 			this.train().then(() => {
-				this.test_data = this.getTestData(10);
-				// let y_pred = this.model.predict(data.xs);
-				// const labels = Array.from(data.labels.argMax(1).dataSync());
+				// this.test_data = this.getTestData(10);
+				let data = this.getTestData(10);
+				this.entrenando = false;
+				// let y_pred = this.model.predict(this.test_data.xs);
+				// const labels = Array.from(this.test_data.labels.argMax(1).dataSync());
 				// const predictions = Array.from(y_pred.argMax(1).dataSync());
+
 				// this.prediction_labels = labels;
 				// this.prediction_nuevas = predictions;
-				// this.ejemplos_cargados = true;
+				this.ejemplos_cargados = true;
+				// this.testExamplesLength = this.test_data.xs.shape[0];
 
-				// const testExamples = data.xs.shape[0];
+				let y_pred = this.model.predict(data.xs);
+				const labels = Array.from(data.labels.argMax(1).dataSync());
+				const predictions = Array.from(y_pred.argMax(1).dataSync());
 
-				// for (let i = 0; i < testExamples; i++) {
-				// 	const image = data.xs.slice([ i, 0 ], [ 1, data.xs.shape[1] ]);
+				const testExamples = data.xs.shape[0];
 
-				// 	let canvas = document.getElementById('canvas' + i);
+				for (let i = 0; i < testExamples; i++) {
+					const image = data.xs.slice([ i, 0 ], [ 1, data.xs.shape[1] ]);
 
-				// 	this.draw(image.flatten(), canvas);
-				// }
+					let canvas = document.getElementById('canvas' + i);
+
+					this.draw(image.flatten(), canvas);
+				}
 			});
 		});
-		this.entrenando = true;
 	}
 
 	draw(image, canvas) {
@@ -303,36 +314,37 @@ export class MnistComponent implements OnInit {
 			imageData.data[j + 2] = data[i] * 255;
 			imageData.data[j + 3] = 255;
 		}
+
 		ctx.putImageData(imageData, 0, 0);
 	}
 
-	draw3(testExamples) {
-		for (let i = 0; i < testExamples; i++) {
-			const im = this.test_data.xs.slice([ i, 0 ], [ 1, this.test_data.xs.shape[1] ]);
+	// draw3(testExamples) {
+	// 	for (let i = 0; i < testExamples; i++) {
+	// 		const im = this.test_data.xs.slice([ i, 0 ], [ 1, this.test_data.xs.shape[1] ]);
 
-			let canvas = <HTMLCanvasElement>document.createElement('canvas');
-			// let canvas = document.createElement('canvas');
-			// document.getElementById('div_test_canvas').appendChild(canvas);
-			//this.draw(image.flatten(), canvas);
-			let image = im.flatten();
-			const [ width, height ] = [ 28, 28 ];
-			canvas.width = width;
-			canvas.height = height;
-			const ctx = canvas.getContext('2d');
-			const imageData = new ImageData(width, height);
-			const data = image.dataSync();
-			for (let i = 0; i < height * width; ++i) {
-				const j = i * 4;
-				imageData.data[j + 0] = data[i] * 255;
-				imageData.data[j + 1] = data[i] * 255;
-				imageData.data[j + 2] = data[i] * 255;
-				imageData.data[j + 3] = 255;
-			}
-			ctx.putImageData(imageData, 0, 0);
+	// 		let canvas = <HTMLCanvasElement>document.createElement('canvas');
+	// 		// let canvas = document.createElement('canvas');
+	// 		// document.getElementById('div_test_canvas').appendChild(canvas);
+	// 		//this.draw(image.flatten(), canvas);
+	// 		let image = im.flatten();
+	// 		const [ width, height ] = [ 28, 28 ];
+	// 		canvas.width = width;
+	// 		canvas.height = height;
+	// 		const ctx = canvas.getContext('2d');
+	// 		const imageData = new ImageData(width, height);
+	// 		const data = image.dataSync();
+	// 		for (let i = 0; i < height * width; ++i) {
+	// 			const j = i * 4;
+	// 			imageData.data[j + 0] = data[i] * 255;
+	// 			imageData.data[j + 1] = data[i] * 255;
+	// 			imageData.data[j + 2] = data[i] * 255;
+	// 			imageData.data[j + 3] = 255;
+	// 		}
+	// 		ctx.putImageData(imageData, 0, 0);
 
-			this.canvases.push(canvas);
-		}
-	}
+	// 		this.canvases.push(canvas);
+	// 	}
+	// }
 
 	async train() {
 		//const optimizer = 'rmsprop';

@@ -10,6 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MnistComponent } from './mnist/mnist.component';
 import { NavbarComponent } from './navbar/navbar.component';
+import { EjemplosComponent } from './ejemplos/ejemplos.component';
 
 const appRoutes: Routes = [
 	{ path: '', component: MnistComponent },
@@ -19,7 +20,7 @@ const appRoutes: Routes = [
 ];
 
 @NgModule({
-	declarations: [ AppComponent, MnistComponent, NavbarComponent, InformacionComponent ],
+	declarations: [ AppComponent, MnistComponent, NavbarComponent, InformacionComponent, EjemplosComponent ],
 	imports: [
 		BrowserModule,
 		BrowserAnimationsModule,
