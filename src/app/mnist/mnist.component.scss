@@ -75,8 +75,8 @@
 }
 
 .row {
-	border-bottom: 2px solid #05668d;
-	margin: 0px !important;
+	//border-bottom: 2px solid #05668d;
+	margin: 5px 0px 0px 0px !important;
 }
 
 .input-batch {
@@ -135,6 +135,7 @@ table {
 }
 
 .entrenamiento {
+	border-top: 2px solid #05668d;
 	.btn-entrenar {
 		display: inline-block;
 		margin: 10px 10px 10px 0px;
@@ -191,7 +192,15 @@ table {
 		color: white;
 		background-color: #05668d;
 		font-size: initial;
-		margin: 5px;
+		//margin: 5px;
+		padding: 5px 0px;
+	}
+
+	.titulo-seccion {
+		color: white;
+		background-color: #05668d;
+		font-size: initial;
+		//margin: 5px;
 		padding: 5px 0px;
 	}
 	.btn-mostrar-codigo:hover {
@@ -270,4 +279,5 @@ table {
 
 .preds {
 	visibility: hidden;
+	height: 0px;
 }

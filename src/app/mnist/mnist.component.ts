@@ -287,6 +287,8 @@ export class MnistComponent implements OnInit {
 				const labels = Array.from(data.labels.argMax(1).dataSync());
 				const predictions = Array.from(y_pred.argMax(1).dataSync());
 
+				this.prediction_labels = labels;
+				this.prediction_nuevas = predictions;
 				const testExamples = data.xs.shape[0];
 
 				for (let i = 0; i < testExamples; i++) {

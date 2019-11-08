@@ -3,19 +3,22 @@
     <div class="col-12 col-md-3 mt-1 mb-1 generales">
         <h5>Parámetros Generales</h5>
         <div>
-            <h6>Learning ratio <i class="fas fa-info-circle ml-1" title="Controla los cambios en los pesos y biases de la red neuronal"></i></h6>
-           
-            
-            
+            <h6>Learning ratio <i class="fas fa-info-circle ml-1"
+                    title="Controla los cambios en los pesos y biases de la red neuronal"></i></h6>
+
+
+
             <input type="number" step=".01" class="form-control" [(ngModel)]="learning_ratio"
                 (change)="actualizarCodigo()">
         </div>
         <div>
-            <h6>Epochs (Ciclos) <i class="fas fa-info-circle ml-1" title="Número de veces en que la red recorre el conjunto de entrenamiento"></i></h6>
+            <h6>Epochs (Ciclos) <i class="fas fa-info-circle ml-1"
+                    title="Número de veces en que la red recorre el conjunto de entrenamiento"></i></h6>
             <input type="number" class="form-control" name="epochs" [(ngModel)]="epochs" (change)="actualizarCodigo()">
         </div>
         <div>
-            <h6>Métrica <i class="fas fa-info-circle ml-1" title="Función que permite medir la precisión del entrenamiento"></i></h6>
+            <h6>Métrica <i class="fas fa-info-circle ml-1"
+                    title="Función que permite medir la precisión del entrenamiento"></i></h6>
             <select class="form-control" name="metrics" [(ngModel)]="metric" (change)="actualizarCodigo()">
                 <option *ngFor="let metric of metricas">{{metric}}</option>
 
@@ -23,14 +26,18 @@
         </div>
 
         <div>
-            <h6>Cost Function <i class="fas fa-info-circle ml-1" title="Función que retorna el error cometido durante el entrenamiento, y que se intenta minimizar"></i></h6>
+            <h6>Cost Function <i class="fas fa-info-circle ml-1"
+                    title="Función que retorna el error cometido durante el entrenamiento, y que se intenta minimizar"></i>
+            </h6>
             <select class="form-control" name="cost_function" [(ngModel)]="cost_function" (change)="actualizarCodigo()">
                 <option *ngFor="let loss of loss_functions">{{loss}}</option>
 
             </select>
         </div>
         <div>
-            <h6>Batch Size <i class="fas fa-info-circle ml-1" title="Permite tomar los elementos de entrenamiento de a grupos. Si no se indica, el default es 32"></i></h6>
+            <h6>Batch Size <i class="fas fa-info-circle ml-1"
+                    title="Permite tomar los elementos de entrenamiento de a grupos. Si no se indica, el default es 32"></i>
+            </h6>
             <div class="input-batch" (change)="actualizarCodigo()">
 
                 <input type="checkbox" class="form-check-input" value="batch_size" [(ngModel)]="batch_check">
@@ -152,52 +159,21 @@
 </div>
 
 <div class="row justify-content-center codigo">
+    <div class="col-12 titulo-seccion">Ejemplos de Test</div>
+    <div class="col-11" id="example-preview">
+        <div *ngIf="!ejemplos_cargados" class="cartel">Por el momento no hay ejemplos de test cargados. Se debe entrenar
+            una red.</div>
+        <div [ngClass]="{'preds': !ejemplos_cargados}">
 
-        <div class="col-11" id="example-preview">
-            <div *ngIf="!ejemplos_cargados" class="cartel">Por el momento no hay ejemplos de test cargados. Se debe entrenar una red.</div>
-            <div>
-
-                <div *ngFor="let item of examples_test; let i = index;" class="prediction-container"
-                [style.visibility]="!ejemplos_cargados? 'hidden': 'visible'">
+            <div *ngFor="let item of examples_test; let i = index;" class="prediction-container">
                 <canvas class="prediction-canvas" id="canvas{{item}}"></canvas>
                 <div *ngIf="ejemplos_cargados">Predicción: {{prediction_nuevas[item]}}</div>
                 <div *ngIf="ejemplos_cargados">Real: {{prediction_labels[item]}}</div>
             </div>
         </div>
-        
+
     </div>
-    <!-- <div>ejemplos de test</div><br> -->
-    <!-- <div *ngIf="!ejemplos_cargados">prbando</div> -->
-    <!-- <app-ejemplos [count]="regularization"></app-ejemplos> -->
-    <!-- <app-ejemplos *ngIf ="!ejemplos_cargados" [labels]="prediction_labels" [nuevas]="prediction_nuevas" [examples_length]="testExamplesLength" [data]="test_data" [ngClass]="{'preds' : !ejemplos_cargados}"></app-ejemplos> -->
-    
-        <!-- <div *ngIf="mostrar_ejemplos; then mostrarEjemplos else noMostrarEjemplos"></div>
-        <ng-template #mostrarEjemplos>
-            <div class="col-12 btn-mostrar-codigo" (click)="showEjemplos()">Ejemplos de Test<i
-                    class="fas fa-caret-up ml-2"></i></div>
-            <div *ngIf="modelo_entrenado; then hayEjemplos else noHayEjemplos"></div>
-            <ng-template #hayEjemplos>
-                 -->
-                <!-- [style.visibility]="!ejemplos_cargados? 'hidden': 'visible'"> -->
-                <!-- <div *ngFor="let item of examples_test; let i = index;" class="prediction-container" id="div_test_canvas">
-                    <canvas
-                        [ngClass]="{'prediction-canvas': true, 'canvas-rojo': prediction_nuevas[item] !== prediction_labels[item]}"
-                        id="canvas{{item}}"></canvas>
-                   
-                    <div>Predicción: {{prediction_nuevas[item]}}</div>
-                    <div>Real: {{prediction_labels[item]}}</div>
-                </div> -->
-            <!-- </ng-template>
-            <ng-template #noHayEjemplos>
-                <div class="cartel">Por el momento no hay ejemplos de test cargados. Se debe entrenar una red.</div>
-            </ng-template>
-            
-        </ng-template>
-        <ng-template #noMostrarEjemplos>
-            <div class="col-12 btn-mostrar-codigo" (click)="showEjemplos()">Ejemplos de Test<i
-                    class="fas fa-caret-down ml-2"></i></div>
-        </ng-template> -->
-   
+
 </div>
 
 <div class="row justify-content-center codigo">
@@ -206,24 +182,25 @@
     <ng-template #mostrarCanvas>
         <div class="col-12 btn-mostrar-codigo" (click)="showCanvas()">Nueva Predicción<i
                 class="fas fa-caret-up ml-2"></i></div>
-        
-            <div class="col-6 canvaces">
-                <canvas id="predict-canvas" width="140" height="140"></canvas>
-                <canvas id="preview-canvas" width="28" height="28"></canvas>
-                
 
-                    <button type="button" class="btn btn-primary boton ml-1" (click)="clearCanvas()">Borrar</button>
-                    <button type="button" class="btn btn-primary boton ml-1 d-inline-block" (click)="predict()">Predecir</button>
-               
-                
-            </div>
-            <div class="col-3 botones-canvas">
-                
-                
-                    <h5 class="mt-1">Predicción: {{ prediction }}</h5>
+        <div class="col-6 canvaces">
+            <canvas id="predict-canvas" width="140" height="140"></canvas>
+            <canvas id="preview-canvas" width="28" height="28"></canvas>
 
-            </div>
-        
+
+            <button type="button" class="btn btn-primary boton ml-1" (click)="clearCanvas()">Borrar</button>
+            <button type="button" class="btn btn-primary boton ml-1 d-inline-block"
+                (click)="predict()">Predecir</button>
+
+
+        </div>
+        <div class="col-3 botones-canvas">
+
+
+            <h5 class="mt-1">Predicción: {{ prediction }}</h5>
+
+        </div>
+
     </ng-template>
     <ng-template #noMostrarCanvas>
         <div class="col-12 btn-mostrar-codigo" (click)="showCanvas()">Nueva Predicción<i
