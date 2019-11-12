@@ -135,7 +135,14 @@ table {
 }
 
 .entrenamiento {
-	border-top: 2px solid #05668d;
+	//border-top: 2px solid #05668d;
+	.titulo-seccion {
+		color: white;
+		background-color: #05668d;
+		font-size: initial;
+		text-align: center;
+		padding: 5px 0px;
+	}
 	.btn-entrenar {
 		display: inline-block;
 		margin: 10px 10px 10px 0px;
@@ -258,11 +265,21 @@ table {
 	.prediction-canvas {
 		width: 100px;
 		border-radius: 5px;
-		border: 3px solid rgb(12, 172, 12);
+		border: 3px solid #05668d;
 	}
 
 	.canvas-rojo {
 		border: 3px solid rgb(255, 0, 0);
+	}
+
+	.mal-pred {
+		color: rgb(206, 9, 9);
+		font-weight: bold;
+	}
+
+	.bien-pred {
+		color: rgb(7, 163, 7);
+		font-weight: bold;
 	}
 }
 

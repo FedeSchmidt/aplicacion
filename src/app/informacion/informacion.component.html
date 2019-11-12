@@ -21,6 +21,16 @@
                 <div class="titulo" (click)="show('estructura')">Estructura de una Red Neuronal <i class="fas fa-sort-down float-right"></i></div>
         </ng-template>
 
+        <div *ngIf="expanded.construccion; then i1 else i2"></div>
+        <ng-template #i1>
+            <div class="titulo" (click)="show('construccion')">Construcción de una Red Neuronal <i class="fas fa-sort-up float-right pt-2"></i></div>
+            <div class="informacion">{{data.construccion}}</div>
+
+        </ng-template>
+        <ng-template #i2>
+                <div class="titulo" (click)="show('construccion')">Contrucción de una Red Neuronal <i class="fas fa-sort-down float-right"></i></div>
+        </ng-template>
+
         <div *ngIf="expanded.activacion; then h1 else h2"></div>
         <ng-template #h1>
             <div class="titulo" (click)="show('activacion')">Funciones de Activación de las Neuronas <i class="fas fa-sort-up float-right pt-2"></i></div>

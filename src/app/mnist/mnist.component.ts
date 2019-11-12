@@ -45,11 +45,11 @@ export class MnistComponent implements OnInit {
 	cx;
 
 	// parámetros generales
-	learning_ratio = 0.1;
-	epochs = 3;
+	learning_ratio = 0.15;
+	epochs = 10;
 	//metrics = 'accuracy';
 	batch_check = true;
-	batch_size = 320;
+	batch_size = 120;
 
 	entrenando = false;
 	resultados = false;
@@ -72,7 +72,7 @@ export class MnistComponent implements OnInit {
 	train_code = [];
 	compile_code = [];
 
-	examples_test = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
+	examples_test = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 ];
 	ejemplos_cargados = false;
 	prediction_labels;
 	prediction_nuevas;
@@ -272,7 +272,7 @@ export class MnistComponent implements OnInit {
 			this.model = this.createModel();
 			this.train().then(() => {
 				// this.test_data = this.getTestData(10);
-				let data = this.getTestData(10);
+				let data = this.getTestData(20);
 				this.entrenando = false;
 				// let y_pred = this.model.predict(this.test_data.xs);
 				// const labels = Array.from(this.test_data.labels.argMax(1).dataSync());
@@ -354,12 +354,14 @@ export class MnistComponent implements OnInit {
 		//optimizer: tf.train.adam(0.001),
 		this.test_accuracy = 'Calculando...';
 		this.trainset_accuracy = 'Calculando...';
-		console.log(this.model !== undefined && this.model !== null);
+		//console.log(this.model !== undefined && this.model !== null);
 		this.model.compile({
 			optimizer: tf.train.sgd(this.learning_ratio),
 			loss: 'categoricalCrossentropy',
 			metrics: [ 'accuracy' ]
 		});
+
+		this.progreso = 0;
 
 		const batchSize = this.batch_check ? this.batch_size : 32;
 
@@ -496,8 +498,7 @@ export class MnistComponent implements OnInit {
 		let labels = tf.tensor2d(this.testLabels, [ this.testLabels.length / this.NUM_CLASSES, this.NUM_CLASSES ]);
 
 		if (numExamples != null) {
-			const r = Math.floor(Math.random() * (this.testImages.length / this.IMAGE_SIZE + 1)) - 10;
-			console.log(r);
+			const r = Math.floor(Math.random() * (this.testImages.length / this.IMAGE_SIZE + 1)) - numExamples;
 			xs = xs.slice([ r, 0, 0, 0 ], [ numExamples, this.IMAGE_H, this.IMAGE_W, 1 ]);
 			labels = labels.slice([ r, 0 ], [ numExamples, this.NUM_CLASSES ]);
 		}
@@ -569,6 +570,7 @@ export class MnistComponent implements OnInit {
 
 	startPosition() {
 		this.painting = true;
+		console.log('hola');
 	}
 
 	finishedPosition() {
@@ -582,7 +584,7 @@ export class MnistComponent implements OnInit {
 	}
 
 	mouseMove(e) {
-		//console.log(e);
+		console.log(e);
 		if (!this.painting) return;
 		if (this.canvas == undefined) {
 			this.canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
@@ -591,7 +593,7 @@ export class MnistComponent implements OnInit {
 
 		const rect = this.canvas.getBoundingClientRect();
 
-		this.cx.lineWidth = 8;
+		this.cx.lineWidth = 16;
 		this.cx.lineCap = 'round';
 		this.cx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
 		this.cx.stroke();

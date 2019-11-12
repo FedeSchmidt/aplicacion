@@ -14,7 +14,8 @@ export class InformacionComponent implements OnInit {
 		cost_function: false,
 		batch_size: false,
 		estructura: false,
-		activacion: false
+		activacion: false,
+		construccion: false
 	};
 
 	data;
