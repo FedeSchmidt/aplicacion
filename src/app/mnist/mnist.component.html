@@ -128,15 +128,29 @@
             [disabled]="entrenando">¡Entrenar!</button>
         <!-- <button type="button" class="btn btn-primary boton boton-guardar" (click)="guardarModelo()"
             [disabled]="progreso != 100">Guardar</button> -->
-        <div [ngClass]="{'progress train-bar' : true, 'progress-opaco': !resultados}">
+        <!-- <div [ngClass]="{'progress train-bar' : true, 'progress-opaco': !resultados}">
             <div class="progress-bar progress-bar-striped bg-success" role="progressbar" [style.width]="progreso + '%' "
                 aria-valuemin="0" aria-valuemax="100"></div>
             <span class="col-12">{{progreso}} %</span>
-        </div>
+        </div> -->
+<!-- 
         <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !resultados}">
+            <h6>Progreso: Epoch {{epochActual}}/{{ epochs }}</h6>
             <h6>Accuracy (Conjunto de entrenamiento): {{ trainset_accuracy }}</h6>
-            <h6>Accuracy (Conjunto de test): {{ test_accuracy }}</h6>
+            <h6>Accuracy (Conjunto de validación): {{ validation_accuracy }}</h6>
+        </div> -->
+        <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !resultados}">
+            <div *ngFor="let item of examples_test; let i = index;" class="prediction-container">
+                <canvas class="prediction-canvas" id="canvas{{item}}"></canvas>
+                <div *ngIf="ejemplos_cargados" [ngClass]="{'bien-pred':prediction_nuevas[item] == prediction_labels[item], 'mal-pred':prediction_nuevas[item] !== prediction_labels[item]}">Predicción: {{prediction_nuevas[item]}}</div>
+                <div *ngIf="ejemplos_cargados">Real: {{prediction_labels[item]}}</div>
+            </div>
+            <div class="col-2">Epoch {{epochActual}}/{{ epochs }}</div>
+            <h6>Progreso: Epoch {{epochActual}}/{{ epochs }}</h6>
+            <h6>Accuracy (Conjunto de entrenamiento): {{ trainset_accuracy }}</h6>
+            <h6>Accuracy (Conjunto de validación): {{ validation_accuracy }}</h6>
         </div>
+
     </div>
 
 </div>

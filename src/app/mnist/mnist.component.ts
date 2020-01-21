@@ -30,7 +30,7 @@ export class MnistComponent implements OnInit {
 	model: any;
 
 	progreso = 0;
-	validation_accuracy = 0;
+	validation_accuracy = '---';
 	test_accuracy = '---';
 	trainset_accuracy = '---';
 
@@ -47,6 +47,7 @@ export class MnistComponent implements OnInit {
 	// parámetros generales
 	learning_ratio = 0.15;
 	epochs = 10;
+	epochActual = 0;
 	//metrics = 'accuracy';
 	batch_check = true;
 	batch_size = 120;
@@ -86,6 +87,8 @@ export class MnistComponent implements OnInit {
 	mostrar_ejemplos = false;
 	mostrar_canvas = false;
 	canvases: any = [];
+
+	res_obtenidos={}
 
 	constructor() {}
 
@@ -272,6 +275,7 @@ export class MnistComponent implements OnInit {
 			this.model = this.createModel();
 			this.train().then(() => {
 				// this.test_data = this.getTestData(10);
+				console.log(this.res_obtenidos);
 				let data = this.getTestData(20);
 				this.entrenando = false;
 				// let y_pred = this.model.predict(this.test_data.xs);
@@ -352,8 +356,8 @@ export class MnistComponent implements OnInit {
 		//const optimizer = 'rmsprop';
 
 		//optimizer: tf.train.adam(0.001),
-		this.test_accuracy = 'Calculando...';
-		this.trainset_accuracy = 'Calculando...';
+		// this.test_accuracy = 'Calculando...';
+		// this.trainset_accuracy = 'Calculando...';
 		//console.log(this.model !== undefined && this.model !== null);
 		this.model.compile({
 			optimizer: tf.train.sgd(this.learning_ratio),
@@ -391,13 +395,39 @@ export class MnistComponent implements OnInit {
 				onBatchEnd: async (batch, logs) => {
 					trainBatchCount++;
 					this.progreso = Math.floor(trainBatchCount / totalNumBatches * 100);
+					console.log(logs);
+					if(this.res_obtenidos[this.epochActual] === undefined){
+						this.res_obtenidos[this.epochActual] = {
+							'loss': logs.loss.toFixed(4),
+							'acc': logs.acc.toFixed(4),
+							'val_loss': '-',
+							'val_acc': '-',
+							
+						}
+					}
+					else{
+						this.res_obtenidos[this.epochActual]['loss'] = logs.loss.toFixed(4);
+						this.res_obtenidos[this.epochActual]['acc'] = logs.acc.toFixed(4);
+					}
+					// this.validation_accuracy = logs.val_acc.toFixed(2) + '%';
+					this.trainset_accuracy = logs.acc.toFixed(2) + '%';
 					console.log(
 						`Training... (` + `${(trainBatchCount / totalNumBatches * 100).toFixed(1)}%` + ` complete).`
-					);
-				},
-				onEpochEnd: async (epoch, logs) => {
-					valAcc = logs.val_acc;
-					trainsetAcc = logs.acc;
+						);
+					},
+					onEpochEnd: async (epoch, logs) => {
+						// valAcc = logs.val_acc;
+						// trainsetAcc = logs.acc;
+						this.validation_accuracy = logs.val_acc.toFixed(2) + '%';
+					this.trainset_accuracy = logs.acc.toFixed(2) + '%';
+
+					this.res_obtenidos[this.epochActual]['loss'] = logs.loss.toFixed(4);
+					this.res_obtenidos[this.epochActual]['acc'] = logs.acc.toFixed(4);
+					this.res_obtenidos[this.epochActual]['val_loss'] = logs.val_loss.toFixed(4);
+					this.res_obtenidos[this.epochActual]['val_acc'] = logs.val_acc.toFixed(4);
+
+					this.epochActual = epoch+1;
+
 					// console.log('Memory: ' + tf.memory().numBytes);
 					// console.log('Memory: ' + tf.memory().numTensors);
 				}
@@ -406,17 +436,17 @@ export class MnistComponent implements OnInit {
 
 		const testResult = this.model.evaluate(testData.xs, testData.labels);
 		const testAccPercent = testResult[1].dataSync()[0] * 100;
-		const finalValAccPercent = valAcc * 100;
-		const finalTrainsetAccPercent = trainsetAcc * 100;
-		this.validation_accuracy = parseFloat(finalValAccPercent.toFixed(2));
-		this.test_accuracy = testAccPercent.toFixed(2) + ' %';
-		this.trainset_accuracy = finalTrainsetAccPercent.toFixed(2) + '%';
-		console.log(
-			`Final train set accuracy: ${finalTrainsetAccPercent.toFixed(1)}%; ` +
-				`Final validation accuracy: ${finalValAccPercent.toFixed(1)}%; ` +
-				`Final test accuracy: ${testAccPercent.toFixed(1)}%` +
-				`Test result: ${testResult}`
-		);
+		// const finalValAccPercent = valAcc * 100;
+		// const finalTrainsetAccPercent = trainsetAcc * 100;
+		// this.validation_accuracy = parseFloat(finalValAccPercent.toFixed(2));
+		// this.test_accuracy = testAccPercent.toFixed(2) + ' %';
+		// this.trainset_accuracy = finalTrainsetAccPercent.toFixed(2) + '%';
+		// console.log(
+		// 	`Final train set accuracy: ${finalTrainsetAccPercent.toFixed(1)}%; ` +
+		// 		`Final validation accuracy: ${finalValAccPercent.toFixed(1)}%; ` +
+		// 		`Final test accuracy: ${testAccPercent.toFixed(1)}%` +
+		// 		`Test result: ${testResult}`
+		// );
 		this.modelo_entrenado = true;
 	}
 
