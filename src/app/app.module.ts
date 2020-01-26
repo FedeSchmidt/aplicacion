@@ -9,6 +9,7 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MnistComponent } from './mnist/mnist.component';
+import { Auxiliar } from './mnist/auxiliar';
 import { NavbarComponent } from './navbar/navbar.component';
 
 const appRoutes: Routes = [

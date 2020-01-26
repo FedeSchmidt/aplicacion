@@ -1,13 +1,12 @@
-<div class="row justify-content-around">
 
+<!-- PARAMETROS Y ESTRUCTURA DE LA RED -->
+<div class="row justify-content-around">
     <div class="col-12 col-md-3 mt-1 mb-1 generales">
+
         <h5>Parámetros Generales</h5>
         <div>
             <h6>Learning ratio <i class="fas fa-info-circle ml-1"
                     title="Controla los cambios en los pesos y biases de la red neuronal"></i></h6>
-
-
-
             <input type="number" step=".01" class="form-control" [(ngModel)]="learning_ratio"
                 (change)="actualizarCodigo()">
         </div>
@@ -44,28 +43,17 @@
                 <input type="number" class="form-control " [(ngModel)]="batch_size" [disabled]="!batch_check">
             </div>
         </div>
-        <!-- <div>
-            <h6>Regularización</h6>
-            <select name="regularizacion" id="" class="form-control regularizacion" [(ngModel)]="regularization">
-                <option>Ninguno</option>
-                <option>L1</option>
-                <option>L2</option>
-            </select>
-            <input type="number" step=".01" class="form-control regularizacion ml-1"
-                [disabled]="regularization == 'Ninguno'" [(ngModel)]="regularization_ratio">
-
-        </div> 
-
+        <!-- 
         <button type="button" class="btn btn-primary boton boton-cargar" (click)="recuperarModelo()">Cargar
-            Modelo</button>
--->
+            Modelo</button>-->
 
 
-    </div>
+</div>
+    
 
-    <div class="col-12 col-md-7 table-responsive">
+    <div class="col-12 col-md-8 table-responsive">
 
-        <table id="net-table" class="table">
+        <table id="net-table" class="table tabla-red">
             <thead>
                 <tr>
                     <th scope="col">#</th>
@@ -76,81 +64,102 @@
                     <th scope="col">Función<i class="fas fa-info-circle ml-1 mt-1 float-right"
                         title="Función que controla las salidas de cada neurona"></i></th>
                     <th scope="col">
-                        <button type="button" class="btn btn-primary boton" (click)="newLayer()">Nueva Capa</button>
+                        <button type="button" class="btn btn-primary boton" (click)="newLayer()" [disabled]="cant_capas == max_capas">Nueva Capa</button>
                     </th>
                 </tr>
             </thead>
             <tbody id="net-table-body">
 
-                <tr *ngFor="let layer of net; let i = index" [ngClass]="{'disabled_layer': i == 0}">
+                <tr *ngFor="let layer of net; let i = index" [ngClass]="{'disabled_layer': i == 0 || i == net.length -1}">
+                    <div *ngIf="i==0 || i == net.length -1 then primeraCapa; else noPrimeraCapa"></div>
+                    <ng-template #primeraCapa>
+                        <td>{{i}}</td>
+                        <td>{{layer.type}}</td>
+                        <td>{{layer.units}}</td>
+                        <td>{{layer.activation}}</td>
+                    </ng-template>
 
-                    <td>{{ i }}</td>
-                    <td>
-                        <select class="form-control" (change)="onChange($event.target.value, 'type', i)"
-                            [disabled]="i == 0">
-                            <option *ngFor="let tipo of tipos_capas" [selected]="tipo == layer.type">{{tipo}}</option>
-                        </select>
-                    </td>
-                    <td>
-                        <input type="number" class="form-control" (change)="onChange($event.target.value, 'units', i)"
-                            [disabled]="i == 0" value={{layer.units}}>
-                    </td>
-                    <td>
-                        <div *ngIf="i!=0 then ponerAct"></div>
-                        
-                        <ng-template #ponerAct>
-
-                            <select class="form-control" (change)="onChange($event.target.value, 'activation', i)"
-                                [disabled]="i == 0">
+                    <ng-template #noPrimeraCapa>
+                        <td>{{i}}</td>
+                        <td>
+                            <select class="form-control" (change)="onChange($event.target.value, 'type', i)">
+                                <option *ngFor="let tipo of tipos_capas" [selected]="tipo == layer.type">{{tipo}}</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" class="form-control" (change)="onChange($event.target.value, 'units', i)" value={{layer.units}}>
+                        </td>
+                        <td>
+                            <select class="form-control" (change)="onChange($event.target.value, 'activation', i)">
                                 <option *ngFor="let tipo of activations" [selected]="tipo == layer.activation">{{tipo}}
                                 </option>
                             </select>
-                        </ng-template>
-                    </td>
-                    <td *ngIf="i != 0"><i class="fas fa-times" (click)="removeLayer(i)"></i></td>
+                        </td>
+                        <td><i class="fas fa-times" (click)="removeLayer(i)"></i>
+                            <i class="fas fa-chevron-up ml-3" (click)="moverCapa(i, -1)"></i>
+                            <i class="fas fa-chevron-down ml-3" (click)="moverCapa(i, 1)"></i></td>
+                    </ng-template>            
 
                 </tr>
-
-
             </tbody>
         </table>
-
     </div>
-
-
 </div>
 
-<div class="row justify-content-around entrenamiento">
+<div class="row justify-content-center entrenamiento">
     <div class="col-12 titulo-seccion">Entrenamiento</div>
     <div class="col-11">
-
-        <button type="button" class="btn btn-primary btn-entrenar boton" (click)="entrenar()"
-            [disabled]="entrenando">¡Entrenar!</button>
-        <!-- <button type="button" class="btn btn-primary boton boton-guardar" (click)="guardarModelo()"
-            [disabled]="progreso != 100">Guardar</button> -->
-        <!-- <div [ngClass]="{'progress train-bar' : true, 'progress-opaco': !resultados}">
-            <div class="progress-bar progress-bar-striped bg-success" role="progressbar" [style.width]="progreso + '%' "
-                aria-valuemin="0" aria-valuemax="100"></div>
-            <span class="col-12">{{progreso}} %</span>
-        </div> -->
-<!-- 
+        
+            <button type="button" class="btn btn-primary btn-entrenar boton" (click)="entrenar()"[disabled]="entrenando">¡Entrenar!</button>
+            
+        
         <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !resultados}">
-            <h6>Progreso: Epoch {{epochActual}}/{{ epochs }}</h6>
-            <h6>Accuracy (Conjunto de entrenamiento): {{ trainset_accuracy }}</h6>
-            <h6>Accuracy (Conjunto de validación): {{ validation_accuracy }}</h6>
-        </div> -->
-        <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !resultados}">
-            <div *ngFor="let item of examples_test; let i = index;" class="prediction-container">
-                <canvas class="prediction-canvas" id="canvas{{item}}"></canvas>
-                <div *ngIf="ejemplos_cargados" [ngClass]="{'bien-pred':prediction_nuevas[item] == prediction_labels[item], 'mal-pred':prediction_nuevas[item] !== prediction_labels[item]}">Predicción: {{prediction_nuevas[item]}}</div>
-                <div *ngIf="ejemplos_cargados">Real: {{prediction_labels[item]}}</div>
-            </div>
-            <div class="col-2">Epoch {{epochActual}}/{{ epochs }}</div>
-            <h6>Progreso: Epoch {{epochActual}}/{{ epochs }}</h6>
-            <h6>Accuracy (Conjunto de entrenamiento): {{ trainset_accuracy }}</h6>
-            <h6>Accuracy (Conjunto de validación): {{ validation_accuracy }}</h6>
+            <table class="table tabla-entrenamiento">
+                <thead>
+                  <tr>
+                    <th scope="col">Epoch</th>
+                    <th scope="col">Loss</th>
+                    <th scope="col">Accuracy</th>
+                    <th scope="col">Validation Loss</th>
+                    <th scope="col">Validation Accuracy</th>
+                  </tr>
+                </thead>
+                <tbody>
+                    <div *ngIf="hayResultados; then conDatos else sinDatos"></div>
+                    <ng-template #conDatos>
+                        <tr *ngFor="let item of res_obtenidos | keyvalue: unsorted">
+                            <td>{{item.key}}/{{ epochs }}</td>
+                            <td>{{item.value.loss}}</td>
+                            <td>{{item.value.acc}}</td>
+                            <td>{{item.value.val_loss}}</td>
+                            <td>{{item.value.val_acc}}</td>
+                        </tr>
+                    </ng-template>
+                    <ng-template #sinDatos>
+                        <tr>
+                            <td colspan="5">No hay datos para mostrar</td>
+                        </tr>
+                    </ng-template>
+                    
+                                    
+                </tbody>
+              </table>
+              <div class="row">
+                  <h6>Epoch {{epochActual}}/{{ epochs }}</h6>
+                  <h6 class="ml-4">Accuracy (conjunto de entrenamiento): {{ trainset_accuracy }}</h6>
+                  <h6 class="ml-4">Accuracy (conjunto de validación): {{ validation_accuracy }}</h6>
+                  
+              </div>
+            
         </div>
-
+    </div>
+    <div [ngClass]="{'progress-opaco': !resultados}" class="col-11">
+        <div class="col-6 d-inline-block">
+            <canvas id="loss-chart" height="auto"></canvas>
+        </div>
+        <div class="col-6 d-inline-block">
+            <canvas id="accuracy-chart" height="auto"></canvas>
+        </div>
     </div>
 
 </div>
@@ -198,7 +207,10 @@
 
     </div>
 
+    <canvas id="test-chart" width="100" height="100"></canvas>
+    
 </div>
+
 
 <!-- <div class="row justify-content-center codigo">
 

@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { Auxiliar } from './auxiliar';
 import * as tf from '@tensorflow/tfjs';
 import { Layer } from './../models/layer';
+import Chart from 'chart.js';
 import { JsonPipe } from '@angular/common';
 
 @Component({
@@ -9,16 +11,17 @@ import { JsonPipe } from '@angular/common';
 	styleUrls: [ './mnist.component.scss' ]
 })
 export class MnistComponent implements OnInit {
+	// Variables para el dataset
 	MNIST_IMAGES_SPRITE_PATH = 'https://storage.googleapis.com/learnjs-data/model-builder/mnist_images.png';
 	MNIST_LABELS_PATH = 'https://storage.googleapis.com/learnjs-data/model-builder/mnist_labels_uint8';
-
-	IMAGE_H = 28;
-	IMAGE_W = 28;
 	IMAGE_SIZE = 784;
 	NUM_CLASSES = 10;
 	NUM_DATASET_ELEMENTS = 65000;
 	NUM_TRAIN_ELEMENTS = 55000;
 	NUM_TEST_ELEMENTS = this.NUM_DATASET_ELEMENTS - this.NUM_TRAIN_ELEMENTS;
+	IMAGE_H = 28;
+	IMAGE_W = 28;
+
 	datasetImages: Float32Array;
 	datasetLabels: Uint8Array;
 	trainImages: any;
@@ -27,6 +30,8 @@ export class MnistComponent implements OnInit {
 	testLabels: any;
 
 	net = [];
+	max_capas = 8;
+	cant_capas = 0;
 	model: any;
 
 	progreso = 0;
@@ -65,8 +70,8 @@ export class MnistComponent implements OnInit {
 	regularization_ratio = 0.1;
 
 	//Nodos
-	tipos_capas = [ 'Flatten', 'Dense' ];
-	activations = [ 'Sigmoid', 'Linear', 'ReLU', 'Softmax' ];
+	tipos_capas = [ 'Dense', 'Dropout' ];
+	activations = [ 'ReLU', 'Sigmoid', 'Linear', 'Softmax' ];
 
 	//codigo equivalente
 	model_code = [];
@@ -88,19 +93,162 @@ export class MnistComponent implements OnInit {
 	mostrar_canvas = false;
 	canvases: any = [];
 
-	res_obtenidos={}
+	res_obtenidos = {};
+	hayResultados = false;
+
+	//graficos de entrenamiento
+	dataLossChart = {
+		labels: [],
+		datasets: [
+			{
+				label: 'Loss',
+				data: [],
+				borderColor: 'rgba(209, 10, 46, 1)',
+				pointBackgroundColor: 'rgba(209, 10, 46, 1)',
+				pointBorderColor: 'rgba(209, 10, 46, 1)'
+			},
+			{
+				label: 'Val-Loss',
+				data: [],
+				borderColor: 'rgba(4, 158, 53, 1)',
+				pointBackgroundColor: 'rgba(4, 158, 53, 1)',
+				pointBorderColor: 'rgba(4, 158, 53, 1)'
+			}
+		]
+	};
+
+	dataAccChart = {
+		labels: [],
+		datasets: [
+			{
+				label: 'Accuracy',
+				data: [],
+				borderColor: 'rgba(209, 10, 46, 1)',
+				pointBackgroundColor: 'rgba(209, 10, 46, 1)',
+				pointBorderColor: 'rgba(209, 10, 46, 1)'
+			},
+			{
+				label: 'Val-Accuracy',
+				data: [],
+				borderColor: 'rgba(4, 158, 53, 1)',
+				pointBackgroundColor: 'rgba(4, 158, 53, 1)',
+				pointBorderColor: 'rgba(4, 158, 53, 1)'
+			}
+		]
+	};
+
+	optionsLossChart = {
+		title: {
+			display: true,
+			text: 'Loss',
+			fontSize: 16,
+			fontColor: 'rgba(0,0,0,1)'
+		},
+		scales: {
+			xAxes: [
+				{
+					ticks: {
+						display: false
+					},
+					gridLines: {
+						display: false
+					}
+				}
+			]
+		}
+	};
+
+	optionsAccChart = {
+		title: {
+			display: true,
+			text: 'Accuracy',
+			fontSize: 16,
+			fontColor: 'rgba(0,0,0,1)'
+		},
+		scales: {
+			xAxes: [
+				{
+					ticks: {
+						display: false
+					},
+					gridLines: {
+						display: false
+					}
+				}
+			]
+		}
+	};
+	accuracyChart: any;
+	lossChart: any;
 
 	constructor() {}
 
 	ngOnInit() {
 		this.armarRedBase();
 
-		// this.canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
-		// this.cx = this.canvas.getContext('2d');
+		var canv = <HTMLCanvasElement>document.getElementById('loss-chart');
+		var ctx = canv.getContext('2d');
 
-		// this.canvas.addEventListener('mousedown', this.startPosition);
-		// this.canvas.addEventListener('mouseup', this.finishedPosition);
-		// this.canvas.addEventListener('mousemove', this.mouseMove);
+		this.lossChart = new Chart(ctx, {
+			type: 'line',
+			data: this.dataLossChart,
+			options: this.optionsLossChart
+		});
+
+		var canv = <HTMLCanvasElement>document.getElementById('accuracy-chart');
+		var ctx2 = canv.getContext('2d');
+
+		this.accuracyChart = new Chart(ctx2, {
+			type: 'line',
+			data: this.dataAccChart,
+			options: this.optionsAccChart
+		});
+		//const auxiliar = new Auxiliar();
+		// var canv = <HTMLCanvasElement>document.getElementById('test-chart');
+		// var ctx = canv.getContext('2d');
+
+		// var myChart = new Chart(ctx, {
+		// 	type: 'line',
+		// 	data: {
+		// 		labels: [ 'Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange' ],
+		// 		datasets: [
+		// 			{
+		// 				label: '# of Votes',
+		// 				data: [ 12, 19, 3, 5, 2, 3 ],
+		// 				borderColor: 'rgba(209, 10, 46, 1)',
+		// 				pointBackgroundColor: 'rgba(209, 10, 46, 1)',
+		// 				pointBorderColor: 'rgba(209, 10, 46, 1)'
+		// 			}
+		// 		]
+		// 	},
+		// 	options: {
+		// 		title: {
+		// 			display: true,
+		// 			text: 'Custom Chart Title',
+		// 			fontSize: 16,
+		// 			fontColor: 'rgba(0,0,0,1)'
+		// 		},
+		// 		scales: {
+		// 			xAxes: [
+		// 				{
+		// 					gridLines: {
+		// 						display: false
+		// 					}
+		// 				}
+		// 			]
+		// 		}
+		// 	}
+		// });
+	}
+
+	armarRedBase() {
+		this.net.push(new Layer('Flatten', 784, '-', [ this.IMAGE_H, this.IMAGE_W, 1 ], null));
+		this.net.push(new Layer('Dense', 42, 'ReLU', null, null));
+		this.net.push(new Layer('Dense', 10, 'Softmax', null, null));
+		this.cant_capas = this.net.length;
+
+		this.actualizarCodigo1();
+		this.actualizarCodigo();
 	}
 
 	showCodigos() {
@@ -178,15 +326,6 @@ export class MnistComponent implements OnInit {
 		this.net = datos.net;
 
 		this.model = await tf.loadLayersModel('indexeddb://model_IA');
-	}
-	armarRedBase() {
-		this.net.push(new Layer('Flatten', 784, '-', [ this.IMAGE_H, this.IMAGE_W, 1 ]));
-		this.net.push(new Layer('Dense', 42, 'ReLU', null));
-		this.net.push(new Layer('Dense', 10, 'Softmax', null));
-
-		this.actualizarCodigo1();
-
-		this.actualizarCodigo();
 	}
 
 	actualizarCodigo1() {
@@ -273,6 +412,7 @@ export class MnistComponent implements OnInit {
 		//this.createModel();
 		this.load().then(() => {
 			this.model = this.createModel();
+			this.hayResultados = true;
 			this.train().then(() => {
 				// this.test_data = this.getTestData(10);
 				console.log(this.res_obtenidos);
@@ -396,40 +536,46 @@ export class MnistComponent implements OnInit {
 					trainBatchCount++;
 					this.progreso = Math.floor(trainBatchCount / totalNumBatches * 100);
 					console.log(logs);
-					if(this.res_obtenidos[this.epochActual] === undefined){
-						this.res_obtenidos[this.epochActual] = {
-							'loss': logs.loss.toFixed(4),
-							'acc': logs.acc.toFixed(4),
-							'val_loss': '-',
-							'val_acc': '-',
-							
-						}
+					if (this.res_obtenidos[this.epochActual + 1] === undefined) {
+						this.res_obtenidos[this.epochActual + 1] = {
+							loss: logs.loss.toFixed(4),
+							acc: logs.acc.toFixed(4),
+							val_loss: '-',
+							val_acc: '-'
+						};
+					} else {
+						this.res_obtenidos[this.epochActual + 1]['loss'] = logs.loss.toFixed(4);
+						this.res_obtenidos[this.epochActual + 1]['acc'] = logs.acc.toFixed(4);
 					}
-					else{
-						this.res_obtenidos[this.epochActual]['loss'] = logs.loss.toFixed(4);
-						this.res_obtenidos[this.epochActual]['acc'] = logs.acc.toFixed(4);
-					}
+
 					// this.validation_accuracy = logs.val_acc.toFixed(2) + '%';
 					this.trainset_accuracy = logs.acc.toFixed(2) + '%';
 					console.log(
 						`Training... (` + `${(trainBatchCount / totalNumBatches * 100).toFixed(1)}%` + ` complete).`
-						);
-					},
-					onEpochEnd: async (epoch, logs) => {
-						// valAcc = logs.val_acc;
-						// trainsetAcc = logs.acc;
-						this.validation_accuracy = logs.val_acc.toFixed(2) + '%';
+					);
+				},
+				onEpochEnd: async (epoch, logs) => {
+					// valAcc = logs.val_acc;
+					// trainsetAcc = logs.acc;
+					this.validation_accuracy = logs.val_acc.toFixed(2) + '%';
 					this.trainset_accuracy = logs.acc.toFixed(2) + '%';
 
-					this.res_obtenidos[this.epochActual]['loss'] = logs.loss.toFixed(4);
-					this.res_obtenidos[this.epochActual]['acc'] = logs.acc.toFixed(4);
-					this.res_obtenidos[this.epochActual]['val_loss'] = logs.val_loss.toFixed(4);
-					this.res_obtenidos[this.epochActual]['val_acc'] = logs.val_acc.toFixed(4);
+					this.res_obtenidos[this.epochActual + 1]['loss'] = logs.loss.toFixed(4);
+					this.res_obtenidos[this.epochActual + 1]['acc'] = logs.acc.toFixed(4);
+					this.res_obtenidos[this.epochActual + 1]['val_loss'] = logs.val_loss.toFixed(4);
+					this.res_obtenidos[this.epochActual + 1]['val_acc'] = logs.val_acc.toFixed(4);
 
-					this.epochActual = epoch+1;
+					this.dataLossChart.labels.push('0');
+					this.dataLossChart.datasets[0].data.push(logs.loss.toFixed(4));
+					this.dataLossChart.datasets[1].data.push(logs.val_loss.toFixed(4));
+					this.dataAccChart.labels.push('0');
+					this.dataAccChart.datasets[0].data.push(logs.acc.toFixed(4));
+					this.dataAccChart.datasets[1].data.push(logs.val_acc.toFixed(4));
 
-					// console.log('Memory: ' + tf.memory().numBytes);
-					// console.log('Memory: ' + tf.memory().numTensors);
+					this.lossChart.update();
+					this.accuracyChart.update();
+
+					this.epochActual = epoch + 1;
 				}
 			}
 		});
@@ -632,14 +778,27 @@ export class MnistComponent implements OnInit {
 	}
 
 	newLayer() {
-		this.net.push(new Layer('Flatten', 0, 'ReLU', null));
+		this.net.splice(this.net.length - 1, 0, new Layer('Flatten', 0, 'ReLU', null, null));
+		this.cant_capas++;
 		this.actualizarCodigo1();
 	}
 
 	removeLayer(index) {
 		this.net.splice(index, 1);
-		// console.log(this.net);
+		this.cant_capas--;
 	}
+
+	moverCapa(index, dir) {
+		let item = this.net[index];
+		if (dir > 0) {
+			this.net[index] = this.net[index + 1];
+			this.net[index + 1] = item;
+		} else {
+			this.net[index] = this.net[index - 1];
+			this.net[index - 1] = item;
+		}
+	}
+
 	onChange(value, field, index) {
 		if (field == 'units') {
 			this.net[index][field] = parseInt(value);
@@ -652,5 +811,17 @@ export class MnistComponent implements OnInit {
 
 	armarStringCapa(tipo, units, activacion) {
 		return '\tmodel.add( tf.layers.' + tipo + '( { units: ' + units + ", activation: '" + activacion + "' } ) );";
+	}
+
+	unsorted() {
+		//Ordenador para la tabla del proceso de entrenamiento. (vacío a propósito)
+	}
+
+	descartes() {
+		// this.canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
+		// this.cx = this.canvas.getContext('2d');
+		// this.canvas.addEventListener('mousedown', this.startPosition);
+		// this.canvas.addEventListener('mouseup', this.finishedPosition);
+		// this.canvas.addEventListener('mousemove', this.mouseMove);
 	}
 }

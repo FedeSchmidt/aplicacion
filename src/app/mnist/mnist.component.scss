@@ -92,7 +92,13 @@
 	}
 }
 
-table {
+.tabla-entrenamiento {
+	table-layout: fixed;
+	text-align: center;
+	color: black;
+}
+
+.tabla-red {
 	width: 100%;
 	table-layout: fixed;
 	//padding: 10px 15px;
@@ -128,7 +134,9 @@ table {
 		opacity: 0.7;
 	}
 
-	.fa-times:hover {
+	.fa-times:hover,
+	fa-chevron-up:hover,
+	fa-chevron-down:hover {
 		color: red;
 		cursor: pointer;
 	}
@@ -295,6 +303,10 @@ table {
 }
 
 .preds {
+	visibility: hidden;
+	height: 0px;
+}
+.graficos {
 	visibility: hidden;
 	height: 0px;
 }
