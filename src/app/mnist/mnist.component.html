@@ -48,7 +48,7 @@
             Modelo</button>-->
 
 
-</div>
+    </div>
     
 
     <div class="col-12 col-md-8 table-responsive">
@@ -106,91 +106,124 @@
     </div>
 </div>
 
-<div class="row justify-content-center entrenamiento">
-    <div class="col-12 titulo-seccion">Entrenamiento</div>
-    <div class="col-11">
-        
-            <button type="button" class="btn btn-primary btn-entrenar boton" (click)="entrenar()"[disabled]="entrenando">¡Entrenar!</button>
+<div class="row justify-content-around entrenamiento">
+
+
+    <div class="col-12 col-md-9">
+
+        <div class="col-12 titulo-seccion">Entrenamiento</div>
+        <div class="col-12">
             
-        
-        <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !resultados}">
-            <table class="table tabla-entrenamiento">
-                <thead>
-                  <tr>
-                    <th scope="col">Epoch</th>
-                    <th scope="col">Loss</th>
-                    <th scope="col">Accuracy</th>
-                    <th scope="col">Validation Loss</th>
-                    <th scope="col">Validation Accuracy</th>
-                  </tr>
-                </thead>
-                <tbody>
-                    <div *ngIf="hayResultados; then conDatos else sinDatos"></div>
-                    <ng-template #conDatos>
-                        <tr *ngFor="let item of res_obtenidos | keyvalue: unsorted">
-                            <td>{{item.key}}/{{ epochs }}</td>
-                            <td>{{item.value.loss}}</td>
-                            <td>{{item.value.acc}}</td>
-                            <td>{{item.value.val_loss}}</td>
-                            <td>{{item.value.val_acc}}</td>
-                        </tr>
-                    </ng-template>
-                    <ng-template #sinDatos>
-                        <tr>
-                            <td colspan="5">No hay datos para mostrar</td>
-                        </tr>
-                    </ng-template>
-                    
-                                    
-                </tbody>
-              </table>
-              <div class="row">
-                  <h6>Epoch {{epochActual}}/{{ epochs }}</h6>
-                  <h6 class="ml-4">Accuracy (conjunto de entrenamiento): {{ trainset_accuracy }}</h6>
-                  <h6 class="ml-4">Accuracy (conjunto de validación): {{ validation_accuracy }}</h6>
-                  
-              </div>
+                <button type="button" class="btn btn-primary btn-entrenar boton" (click)="entrenar()"[disabled]="entrenando">¡Entrenar!</button>
+                
             
+            <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !resultados}">
+                <table class="table tabla-entrenamiento">
+                    <thead>
+                      <tr>
+                        <th scope="col">Epoch</th>
+                        <th scope="col">Loss</th>
+                        <th scope="col">Accuracy</th>
+                        <th scope="col">Validation Loss</th>
+                        <th scope="col">Validation Accuracy</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                        <div *ngIf="hayResultados; then conDatos else sinDatos"></div>
+                        <ng-template #conDatos>
+                            <tr *ngFor="let item of res_obtenidos | keyvalue: unsorted">
+                                <td>{{item.key}}/{{ epochs }}</td>
+                                <td>{{item.value.loss}}</td>
+                                <td>{{item.value.acc}}</td>
+                                <td>{{item.value.val_loss}}</td>
+                                <td>{{item.value.val_acc}}</td>
+                            </tr>
+                        </ng-template>
+                        <ng-template #sinDatos>
+                            <tr>
+                                <td colspan="5">No hay datos para mostrar</td>
+                            </tr>
+                        </ng-template>
+                        
+                                        
+                    </tbody>
+                  </table>
+                  <div class="row">
+                      <h6>Epoch {{epochActual}}/{{ epochs }}</h6>
+                      <h6 class="ml-4">Accuracy (conjunto de entrenamiento): {{ trainset_accuracy }}</h6>
+                      <h6 class="ml-4">Accuracy (conjunto de validación): {{ validation_accuracy }}</h6>
+                      
+                  </div>
+                
+            </div>
+            <div [ngClass]="{'progress-opaco': !resultados}" class="col-12">
+                <div class="col-6 d-inline-block">
+                    <canvas id="accuracy-chart" height="auto"></canvas>
+                </div>
+                <div class="col-6 d-inline-block">
+                    <canvas id="loss-chart" height="auto"></canvas>
+                </div>
+            </div>
         </div>
     </div>
-    <div [ngClass]="{'progress-opaco': !resultados}" class="col-11">
-        <div class="col-6 d-inline-block">
-            <canvas id="loss-chart" height="auto"></canvas>
+    <div class="col-12 col-md-3">
+        <div class="col-12 titulo-seccion">Ejemplos 
+            <!-- <i class="fas fa-redo recargar" (click)="cargarEjemplos()" title="Cargar nuevos ejemplos"></i> -->
+            <i class="fas fa-chevron-left ejemplos-left" (click)="cargarEjemplos(-10)" title="Cargar nuevos ejemplos"></i>
+            <i class="fas fa-chevron-right ejemplos-right" (click)="cargarEjemplos(10)" title="Cargar nuevos ejemplos"></i>
         </div>
-        <div class="col-6 d-inline-block">
-            <canvas id="accuracy-chart" height="auto"></canvas>
-        </div>
+
+            <div class="col-12 panel-ejemplos">
+               
+
+                  <div *ngIf="!imagenes_cargadas" class="loader">
+                    <div class="loader-wheel"></div>
+                    <div class="loader-text"></div>
+                  </div>
+                <div *ngFor="let item of [0,1,2,3,4, 5, 6, 7, 8, 9]; let i = index;" class="col-6 prediction-container" id="div_canvases_{{i}}">
+    
+                    <canvas id="canvast{{item}}"></canvas>
+                </div>
+    
+            </div>
+        
+        
     </div>
 
 </div>
 
 <!-- código equivalente -->
-<div class="row justify-content-center codigo">
-    <div *ngIf="mostrar_codigo; then mostrarCodigo else noMostrarCodigo"></div>
-    <ng-template #mostrarCodigo>
-        <div class="col-12 btn-mostrar-codigo" (click)="showCodigos()">Código<i class="fas fa-caret-up ml-2"></i></div>
+<div class="row justify-content-around codigo">
 
-        <div class="col-12 col-xl-4" id="model-code">
-            <p *ngFor="let sentencia of model_code">{{sentencia}}</p>
-        </div>
-        <div class="col-12 col-xl-4" id="compile-code">
-            <div>
-
-                <p *ngFor="let sentencia of compile_code">{{sentencia}}</p>
+    <div class="col-12 container-codigo">
+        
+        
+        <div class="col-12" *ngIf="mostrar_codigo; then mostrarCodigo else noMostrarCodigo"></div>
+        <ng-template #mostrarCodigo>
+            <div class="col-12 btn-mostrar-codigo" (click)="showCodigos()">Código<i class="fas fa-caret-up ml-2"></i></div>
+            
+            <div class="col-12 col-xl-4" id="model-code">
+                <p *ngFor="let sentencia of model_code">{{sentencia}}</p>
             </div>
-        </div>
-        <div class="col-12 col-xl-4" id="train-code">
-            <p *ngFor="let sentencia of train_code">{{sentencia}}</p>
-        </div>
-    </ng-template>
+            <div class="col-12 col-xl-4" id="compile-code">
+                <div>
+                    
+                    <p *ngFor="let sentencia of compile_code">{{sentencia}}</p>
+                </div>
+            </div>
+            <div class="col-12 col-xl-4" id="train-code">
+                <p *ngFor="let sentencia of train_code">{{sentencia}}</p>
+            </div>
+        </ng-template>
     <ng-template #noMostrarCodigo>
         <div class="col-12 btn-mostrar-codigo" (click)="showCodigos()">Código<i class="fas fa-caret-down ml-2"></i>
         </div>
-
+        
     </ng-template>
+ </div> 
 </div>
 
-<div class="row justify-content-center codigo">
+<!-- <div class="row justify-content-center codigo">
     <div class="col-12 titulo-seccion">Ejemplos de Test</div>
     <div class="col-12" id="example-preview">
 
@@ -209,7 +242,7 @@
 
     <canvas id="test-chart" width="100" height="100"></canvas>
     
-</div>
+</div> -->
 
 
 <!-- <div class="row justify-content-center codigo">

@@ -13,6 +13,44 @@
 	background-color: #05668d;
 }
 
+.titulo-seccion,
+.btn-mostrar-codigo {
+	color: white;
+	background-color: #05668d;
+	font-size: initial;
+	text-align: center;
+	padding: 5px 0px;
+	border-radius: 5px;
+}
+
+// .btn-mostrar-codigo {
+// 	text-align: center;
+// 	color: white;
+// 	background-color: #05668d;
+// 	font-size: initial;
+// 	padding: 5px 0px;
+// 	border-radius: 5px;
+// }
+
+.btn-mostrar-codigo:hover {
+	cursor: pointer;
+}
+
+.ejemplos-right {
+	position: absolute;
+	right: 5%;
+	margin-top: 4px;
+}
+.ejemplos-left {
+	position: absolute;
+	left: 5%;
+	margin-top: 4px;
+}
+
+.recargar:hover {
+	cursor: pointer;
+}
+
 #predict-canvas,
 #preview-canvas {
 	border: 1px solid #05668d;
@@ -98,6 +136,10 @@
 	color: black;
 }
 
+.tabla-entrenamiento tbody {
+	border-bottom: 1px solid #dee2e6;
+}
+
 .tabla-red {
 	width: 100%;
 	table-layout: fixed;
@@ -144,13 +186,7 @@
 
 .entrenamiento {
 	//border-top: 2px solid #05668d;
-	.titulo-seccion {
-		color: white;
-		background-color: #05668d;
-		font-size: initial;
-		text-align: center;
-		padding: 5px 0px;
-	}
+
 	.btn-entrenar {
 		display: inline-block;
 		margin: 10px 10px 10px 0px;
@@ -203,78 +239,149 @@
 .codigo {
 	text-align: center;
 	font-size: small;
-	.btn-mostrar-codigo {
-		color: white;
-		background-color: #05668d;
-		font-size: initial;
-		//margin: 5px;
-		padding: 5px 0px;
-	}
+	margin-bottom: 10px !important;
+}
 
-	.titulo-seccion {
-		color: white;
-		background-color: #05668d;
-		font-size: initial;
-		//margin: 5px;
-		padding: 5px 0px;
-	}
-	.btn-mostrar-codigo:hover {
-		cursor: pointer;
-	}
+.codigo p {
+	margin: 5px 0px;
+	text-align: start;
+	white-space: pre;
+}
+
+.container-codigo {
+	overflow: hidden;
+}
+
+#model-code {
+	margin: 10px 0px;
+	padding: 30px;
+	float: left;
+}
+#compile-code {
+	margin: 10px 0px;
+	border-right: 2px solid #05668d;
+	border-left: 2px solid #05668d;
+	padding: 30px;
+	padding-bottom: 100%;
+	margin-bottom: -100%;
+	float: left;
+}
+#train-code {
+	margin: 10px 0px;
+	padding: 30px;
+	float: left;
+}
+
+@media (max-width: 1350px) {
 	#model-code {
-		margin: 10px 0px;
-		padding: 30px;
+		padding: 15px;
+		margin: 0;
 	}
 	#compile-code {
-		margin: 10px 0px;
-		border-right: 2px solid #05668d;
-		border-left: 2px solid #05668d;
-		padding: 30px;
+		margin: 0;
+		padding: 15px;
+		border-top: 1px dashed #05668d;
+		border-bottom: 1px dashed #05668d;
+		border-right: none;
+		border-left: none;
 	}
 	#train-code {
-		margin: 10px 0px;
-		padding: 30px;
+		margin: 0;
+		padding: 15px;
 	}
+}
 
-	p {
-		margin: 5px 0px;
-		text-align: start;
-		white-space: pre;
+// .titulo-seccion {
+// 	color: white;
+// 	background-color: #05668d;
+// 	font-size: initial;
+// 	//margin: 5px;
+// 	padding: 5px 0px;
+// }
+
+// p {
+// 	margin: 5px 0px;
+// 	text-align: start;
+// 	white-space: pre;
+// }
+
+.prediction-canvas {
+	width: 100px;
+	border-radius: 5px;
+	border: 3px solid #05668d;
+}
+
+.pred-mal {
+	border: 3px solid rgb(255, 0, 0);
+}
+.pred-bien {
+	border: 3px solid rgb(7, 163, 7);
+}
+
+.panel-ejemplos {
+	text-align: center;
+}
+
+.prediction-container {
+	display: inline-block;
+	width: 100px;
+	height: 100px;
+	margin: 10px;
+	padding: 0;
+}
+
+.loader {
+	text-align: center;
+	width: 100%;
+	margin-top: 50%;
+}
+
+.loader-wheel {
+	animation: spin 1s infinite linear;
+	border: 4px solid black;
+	border-left: 4px solid #fff;
+	border-radius: 50%;
+	height: 50px;
+	width: 50px;
+	margin-left: 40%;
+}
+
+.loader-text {
+	color: black;
+	margin-top: 15px;
+}
+
+.loader-text:after {
+	content: 'Cargando';
+	animation: load 1s linear infinite;
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
 	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
 
-	@media (max-width: 1199px) {
-		#model-code {
-			padding: 15px;
-			margin: 0;
-		}
-		#compile-code {
-			margin: 0;
-			padding: 15px;
-			border-top: 1px dashed #05668d;
-			border-bottom: 1px dashed #05668d;
-			border-right: none;
-			border-left: none;
-		}
-		#train-code {
-			margin: 0;
-			padding: 15px;
-		}
+@keyframes load {
+	0% {
+		content: 'Cargando';
+	}
+	33% {
+		content: 'Cargando.';
+	}
+	67% {
+		content: 'Cargando..';
+	}
+	100% {
+		content: 'Cargando...';
 	}
 }
 
 #example-preview {
 	text-align: center;
-	.prediction-container {
-		display: inline-block;
-		width: 100px;
-		height: 100px;
-		margin: 10px;
-	}
-	.prediction-canvas {
-		width: 100px;
-		border-radius: 5px;
-		border: 3px solid #05668d;
-	}
 
 	.canvas-rojo {
 		border: 3px solid rgb(255, 0, 0);

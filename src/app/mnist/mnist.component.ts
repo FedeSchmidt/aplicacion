@@ -22,6 +22,20 @@ export class MnistComponent implements OnInit {
 	IMAGE_H = 28;
 	IMAGE_W = 28;
 
+	//codigo equivalente
+	model_code = [];
+	train_code = [];
+	compile_code = [];
+
+	//ejemplos
+	sliceEjemplos = 0;
+	modelo_entrenado = false;
+	predictions: any;
+	data;
+
+	//Entrenamiento
+	entrenando = false;
+
 	datasetImages: Float32Array;
 	datasetLabels: Uint8Array;
 	trainImages: any;
@@ -40,7 +54,6 @@ export class MnistComponent implements OnInit {
 	trainset_accuracy = '---';
 
 	arr = [];
-	predictions: any;
 	prediction: any;
 
 	cantLayers = 1;
@@ -57,9 +70,7 @@ export class MnistComponent implements OnInit {
 	batch_check = true;
 	batch_size = 120;
 
-	entrenando = false;
 	resultados = false;
-	modelo_entrenado = false;
 
 	metricas = [ 'accuracy', 'mean_squared_error' ];
 	metric = 'accuracy';
@@ -73,11 +84,6 @@ export class MnistComponent implements OnInit {
 	tipos_capas = [ 'Dense', 'Dropout' ];
 	activations = [ 'ReLU', 'Sigmoid', 'Linear', 'Softmax' ];
 
-	//codigo equivalente
-	model_code = [];
-	train_code = [];
-	compile_code = [];
-
 	examples_test = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 ];
 	ejemplos_cargados = false;
 	prediction_labels;
@@ -88,13 +94,14 @@ export class MnistComponent implements OnInit {
 	img_src = '';
 	dataImg;
 
-	mostrar_codigo = false;
+	mostrar_codigo = true;
 	mostrar_ejemplos = false;
 	mostrar_canvas = false;
 	canvases: any = [];
 
 	res_obtenidos = {};
 	hayResultados = false;
+	imagenes_cargadas = false;
 
 	//graficos de entrenamiento
 	dataLossChart = {
@@ -203,42 +210,14 @@ export class MnistComponent implements OnInit {
 			data: this.dataAccChart,
 			options: this.optionsAccChart
 		});
+
+		this.load().then(() => {
+			console.log('Imágenes Cargadas');
+			this.cargarEjemplos(0);
+		});
 		//const auxiliar = new Auxiliar();
 		// var canv = <HTMLCanvasElement>document.getElementById('test-chart');
 		// var ctx = canv.getContext('2d');
-
-		// var myChart = new Chart(ctx, {
-		// 	type: 'line',
-		// 	data: {
-		// 		labels: [ 'Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange' ],
-		// 		datasets: [
-		// 			{
-		// 				label: '# of Votes',
-		// 				data: [ 12, 19, 3, 5, 2, 3 ],
-		// 				borderColor: 'rgba(209, 10, 46, 1)',
-		// 				pointBackgroundColor: 'rgba(209, 10, 46, 1)',
-		// 				pointBorderColor: 'rgba(209, 10, 46, 1)'
-		// 			}
-		// 		]
-		// 	},
-		// 	options: {
-		// 		title: {
-		// 			display: true,
-		// 			text: 'Custom Chart Title',
-		// 			fontSize: 16,
-		// 			fontColor: 'rgba(0,0,0,1)'
-		// 		},
-		// 		scales: {
-		// 			xAxes: [
-		// 				{
-		// 					gridLines: {
-		// 						display: false
-		// 					}
-		// 				}
-		// 			]
-		// 		}
-		// 	}
-		// });
 	}
 
 	armarRedBase() {
@@ -254,31 +233,62 @@ export class MnistComponent implements OnInit {
 	showCodigos() {
 		this.mostrar_codigo = !this.mostrar_codigo;
 	}
+
+	cargarEjemplos(diff) {
+		if (diff == -10) {
+			this.sliceEjemplos = this.sliceEjemplos - 10;
+			console.log('hola');
+		}
+		console.log('Cargando nuevos ejemplos ' + this.sliceEjemplos);
+
+		this.imagenes_cargadas = false;
+		this.data = this.getTestData(10);
+
+		const labels = Array.from(this.data.labels.argMax(1).dataSync());
+		this.prediction_labels = labels;
+		this.imagenes_cargadas = true;
+		const testExamples = this.data.xs.shape[0];
+
+		for (let i = 0; i < testExamples; i++) {
+			const image = this.data.xs.slice([ i, 0 ], [ 1, this.data.xs.shape[1] ]);
+			let div = document.getElementById('div_canvases_' + i);
+			let canvas = document.getElementById('canvast' + i);
+			this.draw(image.flatten(), canvas);
+			canvas.classList.add('prediction-canvas');
+			if (document.getElementById('real' + i) == undefined) {
+				let real = document.createElement('h6');
+				real.id = 'real' + i;
+				real.innerHTML = 'Real: ' + this.prediction_labels[i];
+				div.appendChild(real);
+			} else {
+				document.getElementById('real' + i).innerHTML = 'Real: ' + this.prediction_labels[i];
+			}
+			if (this.modelo_entrenado) {
+				let y_pred = this.model.predict(this.data.xs);
+				this.predictions = Array.from(y_pred.argMax(1).dataSync());
+				if (document.getElementById('prediccion' + i) == undefined) {
+					let prediccion = document.createElement('h6');
+					prediccion.id = 'prediccion' + i;
+					prediccion.innerHTML = 'Predicción: ' + this.predictions[i];
+					div.appendChild(prediccion);
+				} else {
+					document.getElementById('prediccion' + i).innerHTML = 'Predicción: ' + this.predictions[i];
+				}
+
+				if (this.prediction_labels[i] !== this.predictions[i]) {
+					canvas.classList.remove('pred-bien');
+					canvas.classList.add('pred-mal');
+				} else {
+					canvas.classList.remove('pred-mal');
+					canvas.classList.add('pred-bien');
+				}
+			}
+		}
+	}
 	showEjemplos() {
 		this.mostrar_ejemplos = !this.mostrar_ejemplos;
-
-		// if (this.modelo_entrenado) {
-		// 	let y_pred = this.model.predict(this.test_data.xs);
-		// 	const labels = Array.from(this.test_data.labels.argMax(1).dataSync());
-		// 	const predictions = Array.from(y_pred.argMax(1).dataSync());
-		// 	this.prediction_labels = labels;
-		// 	this.prediction_nuevas = predictions;
-		// 	this.ejemplos_cargados = true;
-
-		// 	const testExamples = this.test_data.xs.shape[0];
-		// 	//this.draw3(testExamples);
-
-		// 	for (let i = 0; i < testExamples; i++) {
-		// 		const image = this.test_data.xs.slice([ i, 0 ], [ 1, this.test_data.xs.shape[1] ]);
-
-		// 		console.log(image);
-
-		// 		// 	let canvas = document.getElementById('canvas' + i);
-
-		// 		this.draw(image.flatten(), null);
-		// 	}
-		// }
 	}
+
 	showCanvas() {
 		this.mostrar_canvas = !this.mostrar_canvas;
 		// this.canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
@@ -406,44 +416,49 @@ export class MnistComponent implements OnInit {
 	}
 
 	entrenar() {
-		console.log('entrenar');
+		console.log('Comienzo entrenamiento');
 		this.entrenando = true;
 		this.resultados = true;
-		//this.createModel();
-		this.load().then(() => {
-			this.model = this.createModel();
-			this.hayResultados = true;
-			this.train().then(() => {
-				// this.test_data = this.getTestData(10);
-				console.log(this.res_obtenidos);
-				let data = this.getTestData(20);
-				this.entrenando = false;
-				// let y_pred = this.model.predict(this.test_data.xs);
-				// const labels = Array.from(this.test_data.labels.argMax(1).dataSync());
-				// const predictions = Array.from(y_pred.argMax(1).dataSync());
 
-				// this.prediction_labels = labels;
-				// this.prediction_nuevas = predictions;
-				this.ejemplos_cargados = true;
-				// this.testExamplesLength = this.test_data.xs.shape[0];
+		this.model = this.createModel();
+		this.hayResultados = true;
 
-				let y_pred = this.model.predict(data.xs);
-				const labels = Array.from(data.labels.argMax(1).dataSync());
-				const predictions = Array.from(y_pred.argMax(1).dataSync());
+		this.train().then(() => {
+			console.log(this.res_obtenidos);
+			this.entrenando = false;
+			// let y_pred = this.model.predict(this.data.xs);
+			// this.predictions = Array.from(y_pred.argMax(1).dataSync());
 
-				this.prediction_labels = labels;
-				this.prediction_nuevas = predictions;
-				const testExamples = data.xs.shape[0];
+			this.sliceEjemplos = this.sliceEjemplos - 10;
+			this.cargarEjemplos(0);
+			// this.test_data = this.getTestData(10);
+			// let data = this.getTestData(20);
+			// let y_pred = this.model.predict(this.test_data.xs);
+			// const labels = Array.from(this.test_data.labels.argMax(1).dataSync());
+			// const predictions = Array.from(y_pred.argMax(1).dataSync());
 
-				for (let i = 0; i < testExamples; i++) {
-					const image = data.xs.slice([ i, 0 ], [ 1, data.xs.shape[1] ]);
+			// this.prediction_labels = labels;
+			// this.prediction_nuevas = predictions;
+			// this.ejemplos_cargados = true;
+			// this.testExamplesLength = this.test_data.xs.shape[0];
 
-					let canvas = document.getElementById('canvas' + i);
+			// const labels = Array.from(data.labels.argMax(1).dataSync());
 
-					this.draw(image.flatten(), canvas);
-				}
-			});
+			// this.prediction_labels = labels;
+			// this.prediction_nuevas = predictions;
+			// const testExamples = data.xs.shape[0];
+
+			// for (let i = 0; i < testExamples; i++) {
+			// 	const image = data.xs.slice([ i, 0 ], [ 1, data.xs.shape[1] ]);
+
+			// 	let canvas = document.getElementById('canvas' + i);
+
+			// 	this.draw(image.flatten(), canvas);
+			// }
 		});
+
+		//this.load().then(() => {
+		//});
 	}
 
 	draw(image, canvas) {
@@ -672,11 +687,13 @@ export class MnistComponent implements OnInit {
 			1
 		]);
 		let labels = tf.tensor2d(this.testLabels, [ this.testLabels.length / this.NUM_CLASSES, this.NUM_CLASSES ]);
+		//console.log(this.sliceEjemplos);
 
 		if (numExamples != null) {
-			const r = Math.floor(Math.random() * (this.testImages.length / this.IMAGE_SIZE + 1)) - numExamples;
-			xs = xs.slice([ r, 0, 0, 0 ], [ numExamples, this.IMAGE_H, this.IMAGE_W, 1 ]);
-			labels = labels.slice([ r, 0 ], [ numExamples, this.NUM_CLASSES ]);
+			//const r = Math.floor(Math.random() * (this.testImages.length / this.IMAGE_SIZE + 1)) - numExamples;
+			xs = xs.slice([ this.sliceEjemplos, 0, 0, 0 ], [ numExamples, this.IMAGE_H, this.IMAGE_W, 1 ]);
+			labels = labels.slice([ this.sliceEjemplos, 0 ], [ numExamples, this.NUM_CLASSES ]);
+			this.sliceEjemplos = this.sliceEjemplos + numExamples;
 		}
 
 		return { xs, labels };
