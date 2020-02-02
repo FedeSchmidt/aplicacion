@@ -7,11 +7,12 @@
 }
 
 .titulo {
-	background: #05668d;
+	background: #2f537c;
 	color: white;
 	font-size: large;
 	padding: 10px 20px;
-	border: 1px solid #f9f9f9;
+	margin-top: 2px;
+	text-align: center;
 }
 
 .titulo:hover {
@@ -21,8 +22,6 @@
 .informacion {
 	text-align: justify;
 	padding: 20px 30px;
-	background: #e9ecef;
-	border-left: 1px solid #f9f9f9;
-	border-right: 1px solid #f9f9f9;
+	background: #ebebeb;
 	white-space: pre-line;
 }

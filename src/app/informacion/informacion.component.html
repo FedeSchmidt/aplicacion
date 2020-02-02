@@ -1,6 +1,6 @@
 <div class="row justify-content-center">
         
-    <div class="col-8 mt-2">
+    <div class="col col-md-8 mt-2">
         <div *ngIf="expanded.mnist; then a1 else a2"></div>
         <ng-template #a1>
                 <div class="titulo" (click)="show('mnist')">MNIST Dataset <i class="fas fa-sort-up float-right pt-2"></i></div>
@@ -28,7 +28,7 @@
 
         </ng-template>
         <ng-template #i2>
-                <div class="titulo" (click)="show('construccion')">Contrucción de una Red Neuronal <i class="fas fa-sort-down float-right"></i></div>
+                <div class="titulo" (click)="show('construccion')">Construcción de una Red Neuronal <i class="fas fa-sort-down float-right"></i></div>
         </ng-template>
 
         <div *ngIf="expanded.activacion; then h1 else h2"></div>

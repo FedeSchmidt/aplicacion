@@ -221,9 +221,9 @@ export class MnistComponent implements OnInit {
 	}
 
 	armarRedBase() {
-		this.net.push(new Layer('Flatten', 784, '-', [ this.IMAGE_H, this.IMAGE_W, 1 ], null));
-		this.net.push(new Layer('Dense', 42, 'ReLU', null, null));
-		this.net.push(new Layer('Dense', 10, 'Softmax', null, null));
+		this.net.push(new Layer('Flatten', 784, '-', [ this.IMAGE_H, this.IMAGE_W, 1 ], 0));
+		this.net.push(new Layer('Dense', 42, 'ReLU', null, 0));
+		this.net.push(new Layer('Dense', 10, 'Softmax', null, 0));
 		this.cant_capas = this.net.length;
 
 		this.actualizarCodigo1();
@@ -235,9 +235,9 @@ export class MnistComponent implements OnInit {
 	}
 
 	cargarEjemplos(diff) {
-		if (diff == -10) {
-			this.sliceEjemplos = this.sliceEjemplos - 10;
-			console.log('hola');
+		if (diff < 0) {
+			this.sliceEjemplos = this.sliceEjemplos - 20;
+			console.log(this.sliceEjemplos);
 		}
 		console.log('Cargando nuevos ejemplos ' + this.sliceEjemplos);
 
@@ -312,15 +312,28 @@ export class MnistComponent implements OnInit {
 			net: this.net
 		};
 
-		localStorage.setItem('neural_model_IA', JSON.stringify(obj));
+		// localStorage.setItem('neural_model_IA', JSON.stringify(obj));
 
 		if (this.modelo_entrenado) {
-			console.log('guardando modelo');
-			await this.model.save('downloads://model_IA').then((response) => {
+			console.log('Guardando modelo entrenado');
+			await this.model.save('indexeddb://model_IA').then((response) => {
 				console.log(response);
 			});
 		}
 	}
+
+	async cargarModelo() {
+		this.model = await tf.loadLayersModel('indexeddb://model_IA').then((response) => {
+			console.log(response);
+		});
+	}
+	// cvChanged(e) {
+	// 	this.sumate.cv = e.target.files[0] !== undefined ? e.target.files[0] : undefined;
+	// 	if(this.sumate.cv !== undefined)
+	// 	  // en this.sumate.cv.name tenemos el nombre
+	// 	else
+	// 	  // aca no hay archivo cargado
+	//   }
 
 	async recuperarModelo() {
 		let object = localStorage.getItem('neural_model_IA');
@@ -338,6 +351,16 @@ export class MnistComponent implements OnInit {
 		this.model = await tf.loadLayersModel('indexeddb://model_IA');
 	}
 
+	armarStringCapa(tipo, units, activacion, ratio) {
+		if (tipo === 'dense') {
+			return (
+				'\tmodel.add( tf.layers.' + tipo + '( { units: ' + units + ", activation: '" + activacion + "' } ) );"
+			);
+		} else {
+			return '\tmodel.add( tf.layers.' + tipo + '( ' + ratio + ' ) );';
+		}
+	}
+
 	actualizarCodigo1() {
 		this.model_code = [];
 		this.model_code.push('createModel() {');
@@ -348,7 +371,8 @@ export class MnistComponent implements OnInit {
 				this.armarStringCapa(
 					this.net[i].type.toLowerCase(),
 					this.net[i].units.toString().toLowerCase(),
-					this.net[i].activation.toLowerCase()
+					this.net[i].activation.toLowerCase(),
+					this.net[i].ratio.toString()
 				)
 			);
 		}
@@ -407,11 +431,17 @@ export class MnistComponent implements OnInit {
 
 		for (let i = 1; i < this.net.length; i++) {
 			let layer = this.net[i];
-			model.add(tf.layers.dense({ units: layer.units, activation: layer.activation }));
+			let tipo = this.net[i].type;
+			if (tipo === 'Dense') {
+				let act = layer.activation.toLowerCase();
+				model.add(tf.layers.dense({ units: layer.units, activation: act }));
+			} else if (tipo === 'Dropout') {
+				model.add(tf.layers.dropout(layer.ratio));
+			}
 		}
 
-		// console.log(model);
-
+		model.summary();
+		// console.log(model.countParams());
 		return model;
 	}
 
@@ -691,6 +721,7 @@ export class MnistComponent implements OnInit {
 
 		if (numExamples != null) {
 			//const r = Math.floor(Math.random() * (this.testImages.length / this.IMAGE_SIZE + 1)) - numExamples;
+
 			xs = xs.slice([ this.sliceEjemplos, 0, 0, 0 ], [ numExamples, this.IMAGE_H, this.IMAGE_W, 1 ]);
 			labels = labels.slice([ this.sliceEjemplos, 0 ], [ numExamples, this.NUM_CLASSES ]);
 			this.sliceEjemplos = this.sliceEjemplos + numExamples;
@@ -795,14 +826,16 @@ export class MnistComponent implements OnInit {
 	}
 
 	newLayer() {
-		this.net.splice(this.net.length - 1, 0, new Layer('Flatten', 0, 'ReLU', null, null));
+		this.net.splice(this.net.length - 1, 0, new Layer('Dense', 0, 'ReLU', null, 0));
 		this.cant_capas++;
+		console.log(this.net);
 		this.actualizarCodigo1();
 	}
 
 	removeLayer(index) {
 		this.net.splice(index, 1);
 		this.cant_capas--;
+		this.actualizarCodigo1();
 	}
 
 	moverCapa(index, dir) {
@@ -814,20 +847,22 @@ export class MnistComponent implements OnInit {
 			this.net[index] = this.net[index - 1];
 			this.net[index - 1] = item;
 		}
-	}
-
-	onChange(value, field, index) {
-		if (field == 'units') {
-			this.net[index][field] = parseInt(value);
-		} else {
-			this.net[index][field] = value;
-		}
-
 		this.actualizarCodigo1();
 	}
 
-	armarStringCapa(tipo, units, activacion) {
-		return '\tmodel.add( tf.layers.' + tipo + '( { units: ' + units + ", activation: '" + activacion + "' } ) );";
+	onChange(value, field, index) {
+		if (field !== 'units' && field !== 'ratio') {
+			this.net[index][field] = value;
+		} else {
+			if (field === 'units') this.net[index][field] = parseInt(value);
+			else if (field === 'ratio') {
+				this.net[index][field] = parseFloat(value);
+			}
+		}
+
+		// console.log(this.net);
+
+		this.actualizarCodigo1();
 	}
 
 	unsorted() {
