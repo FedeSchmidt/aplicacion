@@ -61,10 +61,10 @@ export class MnistComponent implements OnInit {
 	epochs = 10;
 	epochActual = 0;
 	batch_size = 120;
-	metricas = [ 'accuracy', 'mean_squared_error' ];
+	metricas = [ 'accuracy' ];
 	metric = 'accuracy';
-	loss_functions = [ 'mean_squared_error', 'categorical_crossentropy' ];
-	cost_function = 'categorical_crossentropy';
+	loss_functions = [ 'categoricalCrossentropy', 'mean_squared_error' ];
+	cost_function = 'categoricalCrossentropy';
 
 	//Nodos
 	tipos_capas = [ 'Dense', 'Dropout' ];
@@ -408,10 +408,14 @@ export class MnistComponent implements OnInit {
 	}
 
 	async train() {
+		let loss;
+		if (this.cost_function === 'categoricalCrossentropy') loss = 'categoricalCrossentropy';
+		else loss = tf.losses.meanSquaredError;
+
 		this.model.compile({
 			optimizer: tf.train.sgd(this.learning_ratio),
-			loss: 'categoricalCrossentropy',
-			metrics: [ 'accuracy' ]
+			loss: loss,
+			metrics: 'accuracy'
 		});
 		const batchSize = this.batch_size;
 
