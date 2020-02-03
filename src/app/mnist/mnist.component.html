@@ -1,7 +1,6 @@
-
 <!-- PARAMETROS Y ESTRUCTURA DE LA RED -->
 <div class="row justify-content-around">
-    <div class="col-12 col-md-3 generales">
+    <div class="col-12 col-md-10 col-lg-3 generales">
 
         <!-- <h5>Parámetros Generales</h5> -->
         <div>
@@ -12,7 +11,7 @@
         </div>
         <div>
             <h6>Epochs (Ciclos) <i class="fas fa-info-circle ml-1"
-                    title="Número de veces en que la red recorre el conjunto de entrenamiento"></i></h6>
+                    title="Número de veces en que la red procesa el conjunto de entrenamiento"></i></h6>
             <input type="number" class="form-control" name="epochs" [(ngModel)]="epochs" (change)="actualizarCodigo()">
         </div>
         <div>
@@ -23,9 +22,8 @@
 
             </select>
         </div>
-
         <div>
-            <h6>Cost Function <i class="fas fa-info-circle ml-1"
+            <h6>Función de Costo <i class="fas fa-info-circle ml-1"
                     title="Función que retorna el error cometido durante el entrenamiento, y que se intenta minimizar"></i>
             </h6>
             <select class="form-control" name="cost_function" [(ngModel)]="cost_function" (change)="actualizarCodigo()">
@@ -35,53 +33,53 @@
         </div>
         <div>
             <h6>Batch Size <i class="fas fa-info-circle ml-1"
-                    title="Permite tomar los elementos de entrenamiento de a grupos. Si no se indica, el default es 32"></i>
+                    title="Permite tomar los elementos de entrenamiento de a grupos"></i>
             </h6>
             <div class="input-batch" (change)="actualizarCodigo()">
-
                 <input type="number" class="form-control" [(ngModel)]="batch_size" [disabled]="!batch_check">
             </div>
         </div>
         <div>
             <div class="col col-md-6 div-btn-cargar">
-
-                <button type="button" class="btn btn-primary boton boton-guardar-modelo" (click)="guardarModelo()">Guardar</button>
+                <button type="button" class="btn btn-primary boton boton-guardar-modelo"
+                    (click)="guardarModelo()">Guardar</button>
             </div>
             <div class="col col-md-6 div-btn-cargar">
-
-                <button type="input" class="btn btn-primary boton boton-cargar-modelo" (click)="cargarModelo()">Importar</button>
-                <input type="file" (change)="cvChanged($event)" accept=".json" id="input_config">
+                <!-- <button type="input" class="btn btn-primary boton boton-cargar-modelo" (click)="cargarModelo()">Importar</button> -->
+                <label for="file" class="labelImportar">
+                    <div>
+                        Importar
+                    </div>
+                    <input type="file" name="file" (change)="cvChanged($event)" accept=".json" id="input_config"
+                        class="input_file">
+                </label>
             </div>
-
-            
         </div>
-
-
     </div>
-    
 
-    <div class="col-12 col-md-8 table-responsive">
-
+    <div class="col-12 col-md-10 col-lg-8 table-responsive">
         <table id="net-table" class="table tabla-red">
             <thead>
                 <tr>
                     <th scope="col">#</th>
                     <th scope="col">Tipo<i class="fas fa-info-circle ml-1 mt-1 float-right"
-                        title="El tipo Flatten es solo para la capa inicial, y Dense implica que todas las neuronas de una capa se conectan con todas las de la siguiente"></i></th>
+                            title="Flatten transforma los datos en un arreglo; Dense implica que todas las neuronas de una capa se conectan con todas las de la siguiente; Dropout permite cortar arcos entre neuronas"></i>
+                    </th>
                     <th scope="col">Cantidad<i class="fas fa-info-circle ml-1 mt-1 float-right"
-                        title="Número de neuronas en la capa"></i></th>
+                            title="Número de neuronas en la capa"></i></th>
                     <th scope="col">Función<i class="fas fa-info-circle ml-1 mt-1 float-right"
-                        title="Función que controla las salidas de cada neurona"></i></th>
+                            title="Función que controla las salidas de cada neurona"></i></th>
                     <th scope="col">Dropout Rate<i class="fas fa-info-circle ml-1 mt-1 float-right"
-                            title="Ratio de desconexión de capa dropout"></i></th>
+                            title="Ratio de desconexión de capa Dropout"></i></th>
                     <th scope="col">
-                        <button type="button" class="btn btn-primary boton" (click)="newLayer()" [disabled]="cant_capas == max_capas">Nueva Capa</button>
+                        <button type="button" class="btn btn-primary boton" (click)="newLayer()"
+                            [disabled]="cant_capas == max_capas">Nueva Capa</button>
                     </th>
                 </tr>
             </thead>
             <tbody id="net-table-body">
-
-                <tr *ngFor="let layer of net; let i = index" [ngClass]="{'disabled_layer': i == 0 || i == net.length -1}">
+                <tr *ngFor="let layer of net; let i = index"
+                    [ngClass]="{'disabled_layer': i == 0 || i == net.length -1}">
                     <div *ngIf="i==0 || i == net.length -1 then primeraCapa; else noPrimeraCapa"></div>
                     <ng-template #primeraCapa>
                         <td>{{i}}</td>
@@ -90,12 +88,12 @@
                         <td>{{layer.activation}}</td>
                         <td>-</td>
                     </ng-template>
-
                     <ng-template #noPrimeraCapa>
                         <td>{{i}}</td>
                         <td>
                             <select class="form-control" (change)="onChange($event.target.value, 'type', i)">
-                                <option *ngFor="let tipo of tipos_capas" [selected]="tipo == layer.type">{{tipo}}</option>
+                                <option *ngFor="let tipo of tipos_capas" [selected]="tipo == layer.type">{{tipo}}
+                                </option>
                             </select>
                         </td>
                         <div *ngIf="layer.type == 'Dropout'; then rowDropout else rowDense"></div>
@@ -103,59 +101,52 @@
                             <td>-</td>
                             <td>-</td>
                             <td>
-                                <input type="number" step=".01" class="form-control" (change)="onChange($event.target.value, 'ratio', i)" value={{layer.ratio}}>
+                                <input type="number" step=".01" class="form-control"
+                                    (change)="onChange($event.target.value, 'ratio', i)" value={{layer.ratio}}>
                             </td>
-
                         </ng-template>
                         <ng-template #rowDense>
-
                             <td>
-                                <input type="number" class="form-control" (change)="onChange($event.target.value, 'units', i)" value={{layer.units}}>
+                                <input type="number" class="form-control"
+                                    (change)="onChange($event.target.value, 'units', i)" value={{layer.units}}>
                             </td>
                             <td>
                                 <select class="form-control" (change)="onChange($event.target.value, 'activation', i)">
-                                    <option *ngFor="let tipo of activations" [selected]="tipo == layer.activation">{{tipo}}
+                                    <option *ngFor="let tipo of activations" [selected]="tipo == layer.activation">
+                                        {{tipo}}
                                     </option>
                                 </select>
                             </td>
                             <td>-</td>
                         </ng-template>
                         <td><i class="fas fa-times" (click)="removeLayer(i)"></i>
-                            <i class="fas fa-chevron-up ml-3" (click)="moverCapa(i, -1)"></i>
-                            <i class="fas fa-chevron-down ml-3" (click)="moverCapa(i, 1)"></i></td>
-                        
-                        
-                        
-                    </ng-template>            
-
+                            <i class="fas fa-chevron-up ml-3" [ngClass]="{'disabled_move': i == 1}" (click)="moverCapa(i, -1)"></i>
+                            <i class="fas fa-chevron-down ml-3" [ngClass]="{'disabled_move': i == net.length - 2}" (click)="moverCapa(i, 1)"></i></td>
+                    </ng-template>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
 
+<!-- ENTRENAMIENTO Y EJEMPLOS -->
 <div class="row justify-content-around entrenamiento">
-
-
-    <div class="col-12 col-md-9">
-
+    <div class="col-12 col-xl-9">
         <div class="col-12 titulo-seccion">Entrenamiento</div>
         <div class="col-12">
-            
-                <button type="button" class="btn btn-primary btn-entrenar boton" (click)="entrenar()"[disabled]="entrenando">¡Entrenar!</button>
-                <button type="button" class="btn btn-primary btn-entrenar boton" (click)="createModel()"[disabled]="entrenando">crear!</button>
-                
-            
+            <button type="button" class="btn btn-primary btn-entrenar boton" (click)="entrenar()"
+                [disabled]="entrenando">¡Entrenar!</button>
+            <!-- <button type="button" class="btn btn-primary btn-entrenar boton" (click)="createModel()"[disabled]="entrenando">crear!</button> -->
             <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !resultados}">
                 <table class="table tabla-entrenamiento">
                     <thead>
-                      <tr>
-                        <th scope="col">Epoch</th>
-                        <th scope="col">Loss</th>
-                        <th scope="col">Accuracy</th>
-                        <th scope="col">Validation Loss</th>
-                        <th scope="col">Validation Accuracy</th>
-                      </tr>
+                        <tr>
+                            <th scope="col">Epoch</th>
+                            <th scope="col">Loss</th>
+                            <th scope="col">Accuracy</th>
+                            <th scope="col">Validation Loss</th>
+                            <th scope="col">Validation Accuracy</th>
+                        </tr>
                     </thead>
                     <tbody>
                         <div *ngIf="hayResultados; then conDatos else sinDatos"></div>
@@ -173,154 +164,67 @@
                                 <td colspan="5" class="no-data-text">No hay datos para mostrar</td>
                             </tr>
                         </ng-template>
-                        
-                                        
                     </tbody>
-                  </table>
-                  <div class="row">
-                      <h6>Epoch {{epochActual}}/{{ epochs }}</h6>
-                      <h6 class="ml-4">Accuracy (conjunto de entrenamiento): {{ trainset_accuracy }}</h6>
-                      <h6 class="ml-4">Accuracy (conjunto de validación): {{ validation_accuracy }}</h6>
-                      
-                  </div>
-                
+                </table>
+                <div class="row">
+                    <h6>Epoch {{epochActual}}/{{ epochs }}</h6>
+                    <h6 class="ml-4">Accuracy (conjunto de entrenamiento): {{ trainset_accuracy }}</h6>
+                    <h6 class="ml-4">Accuracy (conjunto de validación): {{ validation_accuracy }}</h6>
+                </div>
             </div>
-            <div [ngClass]="{'progress-opaco': !resultados}" class="col-12">
-                <div class="col-6 d-inline-block">
+            <div [ngClass]="{'progress-opaco': !resultados}" class="col-12 div-charts">
+                <div class="col col-md-8 col-lg-6 d-inline-block">
                     <canvas id="accuracy-chart" height="auto"></canvas>
                 </div>
-                <div class="col-6 d-inline-block">
+                <div class="col col-md-8 col-lg-6 d-inline-block">
                     <canvas id="loss-chart" height="auto"></canvas>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-12 col-md-3">
-        <div class="col-12 titulo-seccion">Ejemplos 
+    <div class="col-12 col-xl-3">
+        <div class="col-12 titulo-seccion">Ejemplos
             <!-- <i class="fas fa-redo recargar" (click)="cargarEjemplos()" title="Cargar nuevos ejemplos"></i> -->
-            <i class="fas fa-chevron-left ejemplos-left" (click)="cargarEjemplos(-10)" title="Cargar nuevos ejemplos"></i>
-            <i class="fas fa-chevron-right ejemplos-right" (click)="cargarEjemplos(10)" title="Cargar nuevos ejemplos"></i>
+            <i class="fas fa-chevron-left ejemplos-left" (click)="cargarEjemplos(-10)"
+                title="Cargar nuevos ejemplos"></i>
+            <i class="fas fa-chevron-right ejemplos-right" (click)="cargarEjemplos(10)"
+                title="Cargar nuevos ejemplos"></i>
         </div>
-
-            <div class="col-12 panel-ejemplos">
-               
-
-                  <div *ngIf="!imagenes_cargadas" class="loader">
-                    <div class="loader-wheel"></div>
-                    <div class="loader-text"></div>
-                  </div>
-                <div *ngFor="let item of [0,1,2,3,4, 5, 6, 7, 8, 9]; let i = index;" class="col-6 prediction-container" id="div_canvases_{{i}}">
-    
-                    <canvas id="canvast{{item}}"></canvas>
-                </div>
-    
+        <div class="col-12 panel-ejemplos">
+            <div *ngIf="!imagenes_cargadas" class="loader">
+                <div class="loader-wheel"></div>
+                <div class="loader-text"></div>
             </div>
-        
-        
+            <div *ngFor="let item of [0,1,2,3,4,5,6,7,8,9]; let i = index;" class="prediction-container"
+                id="div_canvases_{{i}}">
+                <canvas id="canvast{{item}}"></canvas>
+            </div>
+        </div>
     </div>
-
 </div>
 
-<!-- código equivalente -->
+<!-- CODIGO EQUIVALENTE -->
 <div class="row justify-content-around codigo">
-
     <div class="col-12 container-codigo">
-        
-        
         <div class="col-12" *ngIf="mostrar_codigo; then mostrarCodigo else noMostrarCodigo"></div>
         <ng-template #mostrarCodigo>
-            <div class="col-12 btn-mostrar-codigo" (click)="showCodigos()">Código<i class="fas fa-caret-up ml-2"></i></div>
-            
-            <div class="col-12 col-xl-4" id="model-code">
+            <div class="col-12 btn-mostrar-codigo" (click)="showCodigos()">Código<i class="fas fa-caret-up ml-2"></i>
+            </div>
+            <div class="col-12 " id="model-code">
                 <p *ngFor="let sentencia of model_code">{{sentencia}}</p>
             </div>
-            <div class="col-12 col-xl-4" id="compile-code">
+            <div class="col-12" id="compile-code">
                 <div>
-                    
                     <p *ngFor="let sentencia of compile_code">{{sentencia}}</p>
                 </div>
             </div>
-            <div class="col-12 col-xl-4" id="train-code">
+            <div class="col-12" id="train-code">
                 <p *ngFor="let sentencia of train_code">{{sentencia}}</p>
             </div>
         </ng-template>
-    <ng-template #noMostrarCodigo>
-        <div class="col-12 btn-mostrar-codigo" (click)="showCodigos()">Código<i class="fas fa-caret-down ml-2"></i>
-        </div>
-        
-    </ng-template>
- </div> 
-</div>
-
-<!-- <div class="row justify-content-center codigo">
-    <div class="col-12 titulo-seccion">Ejemplos de Test</div>
-    <div class="col-12" id="example-preview">
-
-        <div *ngIf="!ejemplos_cargados" class="cartel">Por el momento no hay ejemplos de test cargados. Se debe entrenar
-            una red.</div>
-        <div [ngClass]="{'preds': !ejemplos_cargados}">
-
-            <div *ngFor="let item of examples_test; let i = index;" class="prediction-container">
-                <canvas class="prediction-canvas" id="canvas{{item}}"></canvas>
-                <div *ngIf="ejemplos_cargados" [ngClass]="{'bien-pred':prediction_nuevas[item] == prediction_labels[item], 'mal-pred':prediction_nuevas[item] !== prediction_labels[item]}">Predicción: {{prediction_nuevas[item]}}</div>
-                <div *ngIf="ejemplos_cargados">Real: {{prediction_labels[item]}}</div>
+        <ng-template #noMostrarCodigo>
+            <div class="col-12 btn-mostrar-codigo" (click)="showCodigos()">Código<i class="fas fa-caret-down ml-2"></i>
             </div>
-        </div>
-
+        </ng-template>
     </div>
-
-    <canvas id="test-chart" width="100" height="100"></canvas>
-    
-</div> -->
-
-
-<!-- <div class="row justify-content-center codigo">
-
-    <div class="col-12 titulo-seccion">Nueva Predicción</div>
-
-    <div class="col-12 canvaces">
-        <div class="col">
-            <canvas id="predict-canvas" width="140" height="140"></canvas>
-            <canvas id="preview-canvas" width="28" height="28"></canvas>
-        </div>
-        <div class="col">
-            <button type="button" class="btn btn-primary ml-1" (click)="clearCanvas()">Borrar</button>
-            <button type="button" class="btn btn-primary ml-1" (click)="predict()">Predecir</button>
-        </div>
-        <div class="col">
-            <h5 class="mt-1">Predicción: {{ prediction }}</h5>
-        </div>
-
-
-
-    </div>
-
-</div> -->
-    <!-- <div *ngIf="mostrar_canvas; then mostrarCanvas else noMostrarCanvas"></div>
-    <ng-template #mostrarCanvas>
-        <div class="col-12 btn-mostrar-codigo" (click)="showCanvas()">Nueva Predicción<i
-                class="fas fa-caret-up ml-2"></i></div>
-
-        <div class="col-6 canvaces">
-            <canvas id="predict-canvas" width="140" height="140"></canvas>
-            <canvas id="preview-canvas" width="28" height="28"></canvas>
-
-
-            <button type="button" class="btn btn-primary boton ml-1" (click)="clearCanvas()">Borrar</button>
-            <button type="button" class="btn btn-primary boton ml-1 d-inline-block"
-                (click)="predict()">Predecir</button>
-
-
-        </div>
-        <div class="col-3 botones-canvas">
-
-
-            <h5 class="mt-1">Predicción: {{ prediction }}</h5>
-
-        </div>
-
-    </ng-template>
-    <ng-template #noMostrarCanvas>
-        <div class="col-12 btn-mostrar-codigo" (click)="showCanvas()">Nueva Predicción<i
-                class="fas fa-caret-down ml-2"></i></div>
-    </ng-template> -->
+</div>

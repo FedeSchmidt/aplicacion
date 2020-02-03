@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { Auxiliar } from './auxiliar';
 import * as tf from '@tensorflow/tfjs';
 import { Layer } from './../models/layer';
 import Chart from 'chart.js';
@@ -22,6 +21,13 @@ export class MnistComponent implements OnInit {
 	IMAGE_H = 28;
 	IMAGE_W = 28;
 
+	datasetImages: Float32Array;
+	datasetLabels: Uint8Array;
+	trainImages: any;
+	testImages: any;
+	trainLabels: any;
+	testLabels: any;
+
 	//codigo equivalente
 	model_code = [];
 	train_code = [];
@@ -36,13 +42,7 @@ export class MnistComponent implements OnInit {
 	//Entrenamiento
 	entrenando = false;
 
-	datasetImages: Float32Array;
-	datasetLabels: Uint8Array;
-	trainImages: any;
-	testImages: any;
-	trainLabels: any;
-	testLabels: any;
-
+	//Parámetros y red
 	net = [];
 	max_capas = 8;
 	cant_capas = 0;
@@ -76,9 +76,6 @@ export class MnistComponent implements OnInit {
 	metric = 'accuracy';
 	loss_functions = [ 'mean_squared_error', 'categorical_crossentropy' ];
 	cost_function = 'categorical_crossentropy';
-
-	regularization = 'Ninguno';
-	regularization_ratio = 0.1;
 
 	//Nodos
 	tipos_capas = [ 'Dense', 'Dropout' ];
@@ -215,10 +212,6 @@ export class MnistComponent implements OnInit {
 			console.log('Imágenes Cargadas');
 			this.cargarEjemplos(0);
 		});
-
-		//const auxiliar = new Auxiliar();
-		// var canv = <HTMLCanvasElement>document.getElementById('test-chart');
-		// var ctx = canv.getContext('2d');
 	}
 
 	armarRedBase() {
@@ -238,9 +231,7 @@ export class MnistComponent implements OnInit {
 	cargarEjemplos(diff) {
 		if (diff < 0) {
 			this.sliceEjemplos = this.sliceEjemplos - 20;
-			console.log(this.sliceEjemplos);
 		}
-		console.log('Cargando nuevos ejemplos ' + this.sliceEjemplos);
 
 		this.imagenes_cargadas = false;
 		this.data = this.getTestData(10);
@@ -286,19 +277,6 @@ export class MnistComponent implements OnInit {
 			}
 		}
 	}
-	showEjemplos() {
-		this.mostrar_ejemplos = !this.mostrar_ejemplos;
-	}
-
-	showCanvas() {
-		this.mostrar_canvas = !this.mostrar_canvas;
-		// this.canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
-		// this.cx = this.canvas.getContext('2d');
-
-		// this.canvas.addEventListener('mousedown', this.startPosition);
-		// this.canvas.addEventListener('mouseup', this.finishedPosition);
-		// this.canvas.addEventListener('mousemove', this.mouseMove);
-	}
 
 	guardarModelo() {
 		let obj = {
@@ -320,49 +298,12 @@ export class MnistComponent implements OnInit {
 		a.click();
 	}
 
-	cargarModelo() {
-		// this.model = await tf.loadLayersModel('indexeddb://model_IA').then((response) => {
-		// 	console.log(response);
-		// });
-		var input = document.createElement('input');
-		input.setAttribute('type', 'file');
-		input.setAttribute('accept', '.json');
-
-		input.addEventListener('change', function(e) {
-			let file_to_read = e['path'][0].files[0];
-			var fileread = new FileReader();
-			fileread.onloadend = (e) => {
-				var content = fileread.result;
-				console.log(content);
-				let data = JSON.parse(content as string);
-
-				console.log(data);
-
-				// this.learning_ratio = data.learning_ratio;
-				// this.epochs = datos.epochs;
-				// this.batch_size = datos.batch_size;
-				// this.metric = datos.metric;
-				// this.cost_function = datos.cost_function;
-				// this.net = datos.net;
-			};
-			fileread.readAsText(file_to_read);
-		});
-
-		input.click();
-		input.remove();
-	}
-
 	cvChanged(event) {
-		// console.log(event);
 		let file_to_read = event.target.files[0];
 		var fileread = new FileReader();
 
 		fileread.onloadend = (e) => {
-			// var content = fileread.result;
-			// console.log(content);
 			let data = JSON.parse(fileread.result as string);
-
-			// console.log(data);
 
 			this.learning_ratio = data.learning_ratio;
 			this.epochs = data.epochs;
@@ -372,46 +313,7 @@ export class MnistComponent implements OnInit {
 			this.net = data.net;
 			event.srcElement.value = '';
 		};
-		// fileread.onloadend = function(e) {
-		// 	var content = fileread.result;
-		// 	console.log(content);
-		// 	data = JSON.parse(content as string);
-
-		// 	console.log(data);
-
-		// 	this.learning_ratio = data.learning_ratio;
-		// 	// this.epochs = datos.epochs;
-		// 	// this.batch_size = datos.batch_size;
-		// 	// this.metric = datos.metric;
-		// 	// this.cost_function = datos.cost_function;
-		// 	// this.net = datos.net;
-		// };
 		fileread.readAsText(file_to_read);
-
-		//console.log(data);
-		//console.log(data);
-		// let sumate: File;
-		// sumate.cv = e.target.files[0] !== undefined ? e.target.files[0] : undefined;
-		// if(this.sumate.cv !== undefined)
-		//   // en this.sumate.cv.name tenemos el nombre
-		// else
-		// aca no hay archivo cargado
-	}
-
-	async recuperarModelo() {
-		var input = document.createElement('input');
-		input.setAttribute('type', 'file');
-		input.setAttribute('accept', 'json');
-		input.click();
-
-		// let object = localStorage.getItem('neural_model_IA');
-		// let datos = JSON.parse(object);
-		// this.learning_ratio = datos.learning_ratio;
-		// this.epochs = datos.epochs;
-		// this.batch_size = datos.batch_size;
-		// this.metric = datos.metric;
-		// this.cost_function = datos.cost_function;
-		// this.net = datos.net;
 	}
 
 	armarStringCapa(tipo, units, activacion, ratio) {
@@ -478,7 +380,7 @@ export class MnistComponent implements OnInit {
 		this.train_code.splice(16, 1, "\tconsole.log( 'Accuracy', logs.acc );");
 		this.train_code.splice(17, 1, '}');
 	}
-	// //de la red.
+	//de la red.
 	createDenseModel() {
 		const model = tf.sequential();
 		model.add(tf.layers.flatten({ inputShape: [ this.IMAGE_H, this.IMAGE_W, 1 ] }));
@@ -489,7 +391,6 @@ export class MnistComponent implements OnInit {
 
 	createModel() {
 		const model = tf.sequential();
-
 		model.add(tf.layers.flatten({ inputShape: [ this.IMAGE_H, this.IMAGE_W, 1 ] }));
 
 		for (let i = 1; i < this.net.length; i++) {
@@ -502,14 +403,11 @@ export class MnistComponent implements OnInit {
 				model.add(tf.layers.dropout(layer.ratio));
 			}
 		}
-
-		model.summary();
-		// console.log(model.countParams());
+		//model.summary();
 		return model;
 	}
 
 	entrenar() {
-		console.log('Comienzo entrenamiento');
 		this.entrenando = true;
 		this.resultados = true;
 
@@ -519,39 +417,9 @@ export class MnistComponent implements OnInit {
 		this.train().then(() => {
 			console.log(this.res_obtenidos);
 			this.entrenando = false;
-			// let y_pred = this.model.predict(this.data.xs);
-			// this.predictions = Array.from(y_pred.argMax(1).dataSync());
-
 			this.sliceEjemplos = this.sliceEjemplos - 10;
 			this.cargarEjemplos(0);
-			// this.test_data = this.getTestData(10);
-			// let data = this.getTestData(20);
-			// let y_pred = this.model.predict(this.test_data.xs);
-			// const labels = Array.from(this.test_data.labels.argMax(1).dataSync());
-			// const predictions = Array.from(y_pred.argMax(1).dataSync());
-
-			// this.prediction_labels = labels;
-			// this.prediction_nuevas = predictions;
-			// this.ejemplos_cargados = true;
-			// this.testExamplesLength = this.test_data.xs.shape[0];
-
-			// const labels = Array.from(data.labels.argMax(1).dataSync());
-
-			// this.prediction_labels = labels;
-			// this.prediction_nuevas = predictions;
-			// const testExamples = data.xs.shape[0];
-
-			// for (let i = 0; i < testExamples; i++) {
-			// 	const image = data.xs.slice([ i, 0 ], [ 1, data.xs.shape[1] ]);
-
-			// 	let canvas = document.getElementById('canvas' + i);
-
-			// 	this.draw(image.flatten(), canvas);
-			// }
 		});
-
-		//this.load().then(() => {
-		//});
 	}
 
 	draw(image, canvas) {
@@ -572,41 +440,7 @@ export class MnistComponent implements OnInit {
 		ctx.putImageData(imageData, 0, 0);
 	}
 
-	// draw3(testExamples) {
-	// 	for (let i = 0; i < testExamples; i++) {
-	// 		const im = this.test_data.xs.slice([ i, 0 ], [ 1, this.test_data.xs.shape[1] ]);
-
-	// 		let canvas = <HTMLCanvasElement>document.createElement('canvas');
-	// 		// let canvas = document.createElement('canvas');
-	// 		// document.getElementById('div_test_canvas').appendChild(canvas);
-	// 		//this.draw(image.flatten(), canvas);
-	// 		let image = im.flatten();
-	// 		const [ width, height ] = [ 28, 28 ];
-	// 		canvas.width = width;
-	// 		canvas.height = height;
-	// 		const ctx = canvas.getContext('2d');
-	// 		const imageData = new ImageData(width, height);
-	// 		const data = image.dataSync();
-	// 		for (let i = 0; i < height * width; ++i) {
-	// 			const j = i * 4;
-	// 			imageData.data[j + 0] = data[i] * 255;
-	// 			imageData.data[j + 1] = data[i] * 255;
-	// 			imageData.data[j + 2] = data[i] * 255;
-	// 			imageData.data[j + 3] = 255;
-	// 		}
-	// 		ctx.putImageData(imageData, 0, 0);
-
-	// 		this.canvases.push(canvas);
-	// 	}
-	// }
-
 	async train() {
-		//const optimizer = 'rmsprop';
-
-		//optimizer: tf.train.adam(0.001),
-		// this.test_accuracy = 'Calculando...';
-		// this.trainset_accuracy = 'Calculando...';
-		//console.log(this.model !== undefined && this.model !== null);
 		this.model.compile({
 			optimizer: tf.train.sgd(this.learning_ratio),
 			loss: 'categoricalCrossentropy',
@@ -744,8 +578,6 @@ export class MnistComponent implements OnInit {
 			img.src = this.MNIST_IMAGES_SPRITE_PATH;
 		});
 
-		//console.log(this.datasetImages);
-
 		const labelsRequest = fetch(this.MNIST_LABELS_PATH);
 		const [ imgResponse, labelsResponse ] = await Promise.all([ imgRequest, labelsRequest ]);
 
@@ -753,8 +585,6 @@ export class MnistComponent implements OnInit {
 
 		// Slice the the images and labels into train and test sets.
 		this.trainImages = this.datasetImages.slice(0, this.IMAGE_SIZE * this.NUM_TRAIN_ELEMENTS);
-
-		//console.log(this.trainImages);
 		this.testImages = this.datasetImages.slice(this.IMAGE_SIZE * this.NUM_TRAIN_ELEMENTS);
 		this.trainLabels = this.datasetLabels.slice(0, this.NUM_CLASSES * this.NUM_TRAIN_ELEMENTS);
 		this.testLabels = this.datasetLabels.slice(this.NUM_CLASSES * this.NUM_TRAIN_ELEMENTS);
@@ -780,21 +610,12 @@ export class MnistComponent implements OnInit {
 			1
 		]);
 		let labels = tf.tensor2d(this.testLabels, [ this.testLabels.length / this.NUM_CLASSES, this.NUM_CLASSES ]);
-		//console.log(this.sliceEjemplos);
-
-		//console.log(this.testImages.length / this.IMAGE_SIZE);
 
 		if (numExamples != null) {
-			//const r = Math.floor(Math.random() * (this.testImages.length / this.IMAGE_SIZE + 1)) - numExamples;
 			let a = this.sliceEjemplos;
-			// let b;
 			if (this.sliceEjemplos < 0) {
 				a = this.NUM_TEST_ELEMENTS + this.sliceEjemplos;
-				// b = a + numExamples;
 			}
-			// else {
-			// 	b = a + numExamples;
-			// }
 
 			xs = xs.slice([ a, 0, 0, 0 ], [ numExamples, this.IMAGE_H, this.IMAGE_W, 1 ]);
 			labels = labels.slice([ a, 0 ], [ numExamples, this.NUM_CLASSES ]);
@@ -804,105 +625,9 @@ export class MnistComponent implements OnInit {
 		return { xs, labels };
 	}
 
-	// metodos del canvas para dibujar
-
-	async predict() {
-		let canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
-		let preview = <HTMLCanvasElement>document.getElementById('preview-canvas');
-
-		let img = tf.browser.fromPixels(canvas, 4);
-		let resized = this.cropImage(img, canvas.width);
-		tf.browser.toPixels(resized, preview);
-
-		let x_data = tf.cast(resized.reshape([ 1, 28, 28, 1 ]), 'float32');
-
-		let y_pred = this.model.predict(x_data);
-
-		this.predictions = Array.from(y_pred.dataSync());
-		console.log(this.predictions);
-		console.log(y_pred.argMax(1).dataSync());
-		this.prediction = this.predictions.indexOf(Math.max(...this.predictions));
-
-		// this.prediction = Array.from(y_pred.argMax(1).dataSync());
-		// console.log(this.prediction);
-	}
-
-	clearCanvas() {
-		let canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
-		canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-	}
-
-	cropImage(img, width = 140) {
-		img = img.slice([ 0, 0, 3 ]);
-		var mask_x = tf.greater(img.sum(0), 0).reshape([ -1 ]);
-		var mask_y = tf.greater(img.sum(1), 0).reshape([ -1 ]);
-		var st = tf.stack([ mask_x, mask_y ]);
-		var v1 = tf.topk(st);
-		var v2 = tf.topk(st.reverse());
-
-		var [ x1, y1 ] = v1.indices.dataSync();
-		var [ y2, x2 ] = v2.indices.dataSync();
-		y2 = width - y2 - 1;
-		x2 = width - x2 - 1;
-		var crop_w = x2 - x1;
-		var crop_h = y2 - y1;
-
-		if (crop_w > crop_h) {
-			y1 -= (crop_w - crop_h) / 2;
-			crop_h = crop_w;
-		}
-		if (crop_h > crop_w) {
-			x1 -= (crop_h - crop_w) / 2;
-			crop_w = crop_h;
-		}
-
-		img = img.slice([ y1, x1 ], [ crop_h, crop_w ]);
-		img = img.pad([ [ 6, 6 ], [ 6, 6 ], [ 0, 0 ] ]);
-		var resized = tf.image.resizeNearestNeighbor(img, [ 28, 28 ]);
-
-		for (let i = 0; i < 28 * 28; i++) {
-			resized[i] = 255 - resized[i];
-		}
-		return resized;
-	}
-
-	startPosition() {
-		this.painting = true;
-		console.log('hola');
-	}
-
-	finishedPosition() {
-		this.painting = false;
-
-		if (this.canvas == undefined) {
-			this.canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
-			this.cx = this.canvas.getContext('2d');
-		}
-		this.cx.beginPath();
-	}
-
-	mouseMove(e) {
-		console.log(e);
-		if (!this.painting) return;
-		if (this.canvas == undefined) {
-			this.canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
-			this.cx = this.canvas.getContext('2d');
-		}
-
-		const rect = this.canvas.getBoundingClientRect();
-
-		this.cx.lineWidth = 16;
-		this.cx.lineCap = 'round';
-		this.cx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-		this.cx.stroke();
-		this.cx.beginPath();
-		this.cx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-	}
-
 	newLayer() {
 		this.net.splice(this.net.length - 1, 0, new Layer('Dense', 0, 'ReLU', null, 0));
 		this.cant_capas++;
-		console.log(this.net);
 		this.actualizarCodigo1();
 	}
 
@@ -913,15 +638,23 @@ export class MnistComponent implements OnInit {
 	}
 
 	moverCapa(index, dir) {
-		let item = this.net[index];
-		if (dir > 0) {
-			this.net[index] = this.net[index + 1];
-			this.net[index + 1] = item;
+		if (dir < 0 && index == 1) {
+			//No se puede mover
 		} else {
-			this.net[index] = this.net[index - 1];
-			this.net[index - 1] = item;
+			if (dir > 0 && index == this.net.length - 2) {
+				//No se puede mover
+			} else {
+				let item = this.net[index];
+				if (dir > 0) {
+					this.net[index] = this.net[index + 1];
+					this.net[index + 1] = item;
+				} else {
+					this.net[index] = this.net[index - 1];
+					this.net[index - 1] = item;
+				}
+				this.actualizarCodigo1();
+			}
 		}
-		this.actualizarCodigo1();
 	}
 
 	onChange(value, field, index) {
@@ -933,21 +666,10 @@ export class MnistComponent implements OnInit {
 				this.net[index][field] = parseFloat(value);
 			}
 		}
-
-		// console.log(this.net);
-
 		this.actualizarCodigo1();
 	}
 
 	unsorted() {
 		//Ordenador para la tabla del proceso de entrenamiento. (vacío a propósito)
-	}
-
-	descartes() {
-		// this.canvas = <HTMLCanvasElement>document.getElementById('predict-canvas');
-		// this.cx = this.canvas.getContext('2d');
-		// this.canvas.addEventListener('mousedown', this.startPosition);
-		// this.canvas.addEventListener('mouseup', this.finishedPosition);
-		// this.canvas.addEventListener('mousemove', this.mouseMove);
 	}
 }

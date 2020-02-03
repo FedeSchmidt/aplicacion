@@ -15,7 +15,8 @@ export class InformacionComponent implements OnInit {
 		batch_size: false,
 		estructura: false,
 		activacion: false,
-		construccion: false
+		construccion: false,
+		tipos: false
 	};
 
 	data;
