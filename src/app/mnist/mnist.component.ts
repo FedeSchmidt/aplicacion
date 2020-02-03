@@ -29,49 +29,38 @@ export class MnistComponent implements OnInit {
 	testLabels: any;
 
 	//codigo equivalente
+	mostrar_codigo = true;
 	model_code = [];
 	train_code = [];
 	compile_code = [];
 
 	//ejemplos
+	data;
 	sliceEjemplos = 0;
 	modelo_entrenado = false;
+	prediction_labels;
 	predictions: any;
-	data;
+	imagenes_cargadas = false;
 
 	//Entrenamiento
+	res_obtenidos = {};
 	entrenando = false;
+	resultados = false;
+	hayResultados = false;
 
 	//Parámetros y red
 	net = [];
 	max_capas = 8;
 	cant_capas = 0;
 	model: any;
-
-	progreso = 0;
 	validation_accuracy = '---';
-	test_accuracy = '---';
 	trainset_accuracy = '---';
-
-	arr = [];
-	prediction: any;
-
-	cantLayers = 1;
-
-	painting = false;
-	canvas;
-	cx;
 
 	// parámetros generales
 	learning_ratio = 0.15;
 	epochs = 10;
 	epochActual = 0;
-	//metrics = 'accuracy';
-	batch_check = true;
 	batch_size = 120;
-
-	resultados = false;
-
 	metricas = [ 'accuracy', 'mean_squared_error' ];
 	metric = 'accuracy';
 	loss_functions = [ 'mean_squared_error', 'categorical_crossentropy' ];
@@ -80,25 +69,6 @@ export class MnistComponent implements OnInit {
 	//Nodos
 	tipos_capas = [ 'Dense', 'Dropout' ];
 	activations = [ 'ReLU', 'Sigmoid', 'Linear', 'Softmax' ];
-
-	examples_test = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 ];
-	ejemplos_cargados = false;
-	prediction_labels;
-	prediction_nuevas;
-	testExamplesLength = 0;
-	test_data;
-
-	img_src = '';
-	dataImg;
-
-	mostrar_codigo = true;
-	mostrar_ejemplos = false;
-	mostrar_canvas = false;
-	canvases: any = [];
-
-	res_obtenidos = {};
-	hayResultados = false;
-	imagenes_cargadas = false;
 
 	//graficos de entrenamiento
 	dataLossChart = {
@@ -209,7 +179,6 @@ export class MnistComponent implements OnInit {
 		});
 
 		this.load().then(() => {
-			console.log('Imágenes Cargadas');
 			this.cargarEjemplos(0);
 		});
 	}
@@ -361,8 +330,7 @@ export class MnistComponent implements OnInit {
 	actualizarCodigo3() {
 		this.train_code = [];
 		this.train_code.push('train(){');
-		if (!this.batch_check) this.train_code.splice(1, 1, '\tbatchSize = ' + 32 + ';');
-		else this.train_code.splice(1, 1, '\tbatchSize = ' + this.batch_size + ';');
+		this.train_code.splice(1, 1, '\tbatchSize = ' + this.batch_size + ';');
 		this.train_code.splice(2, 1, '\ttrainEpochs = ' + this.epochs + ';');
 		this.train_code.splice(3, 1, '\ttrainData = getTrainData();');
 		this.train_code.splice(4, 1, '\ttestData = getTestData();');
@@ -415,7 +383,6 @@ export class MnistComponent implements OnInit {
 		this.hayResultados = true;
 
 		this.train().then(() => {
-			console.log(this.res_obtenidos);
 			this.entrenando = false;
 			this.sliceEjemplos = this.sliceEjemplos - 10;
 			this.cargarEjemplos(0);
@@ -446,13 +413,9 @@ export class MnistComponent implements OnInit {
 			loss: 'categoricalCrossentropy',
 			metrics: [ 'accuracy' ]
 		});
+		const batchSize = this.batch_size;
 
-		this.progreso = 0;
-
-		const batchSize = this.batch_check ? this.batch_size : 32;
-
-		// Leave out the last 15% of the training data for validation, to monitor
-		// overfitting during training.
+		// Leave out the last 15% of the training data for validation, to monitor overfitting during training.
 		const validationSplit = 0.15;
 
 		// Get number of training epochs from the UI.
@@ -476,8 +439,6 @@ export class MnistComponent implements OnInit {
 			callbacks: {
 				onBatchEnd: async (batch, logs) => {
 					trainBatchCount++;
-					this.progreso = Math.floor(trainBatchCount / totalNumBatches * 100);
-					console.log(logs);
 					if (this.res_obtenidos[this.epochActual + 1] === undefined) {
 						this.res_obtenidos[this.epochActual + 1] = {
 							loss: logs.loss.toFixed(4),
@@ -489,16 +450,12 @@ export class MnistComponent implements OnInit {
 						this.res_obtenidos[this.epochActual + 1]['loss'] = logs.loss.toFixed(4);
 						this.res_obtenidos[this.epochActual + 1]['acc'] = logs.acc.toFixed(4);
 					}
-
-					// this.validation_accuracy = logs.val_acc.toFixed(2) + '%';
 					this.trainset_accuracy = logs.acc.toFixed(2) + '%';
-					console.log(
-						`Training... (` + `${(trainBatchCount / totalNumBatches * 100).toFixed(1)}%` + ` complete).`
-					);
+					// console.log(
+					// 	`Training... (` + `${(trainBatchCount / totalNumBatches * 100).toFixed(1)}%` + ` complete).`
+					// );
 				},
 				onEpochEnd: async (epoch, logs) => {
-					// valAcc = logs.val_acc;
-					// trainsetAcc = logs.acc;
 					this.validation_accuracy = logs.val_acc.toFixed(2) + '%';
 					this.trainset_accuracy = logs.acc.toFixed(2) + '%';
 
@@ -522,19 +479,9 @@ export class MnistComponent implements OnInit {
 			}
 		});
 
-		const testResult = this.model.evaluate(testData.xs, testData.labels);
-		const testAccPercent = testResult[1].dataSync()[0] * 100;
-		// const finalValAccPercent = valAcc * 100;
-		// const finalTrainsetAccPercent = trainsetAcc * 100;
-		// this.validation_accuracy = parseFloat(finalValAccPercent.toFixed(2));
-		// this.test_accuracy = testAccPercent.toFixed(2) + ' %';
-		// this.trainset_accuracy = finalTrainsetAccPercent.toFixed(2) + '%';
-		// console.log(
-		// 	`Final train set accuracy: ${finalTrainsetAccPercent.toFixed(1)}%; ` +
-		// 		`Final validation accuracy: ${finalValAccPercent.toFixed(1)}%; ` +
-		// 		`Final test accuracy: ${testAccPercent.toFixed(1)}%` +
-		// 		`Test result: ${testResult}`
-		// );
+		// const testResult = this.model.evaluate(testData.xs, testData.labels);
+		// const testAccPercent = testResult[1].dataSync()[0] * 100;
+
 		this.modelo_entrenado = true;
 	}
 
