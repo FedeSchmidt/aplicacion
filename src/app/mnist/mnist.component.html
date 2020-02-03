@@ -45,12 +45,12 @@
         <div>
             <div class="col col-md-6 div-btn-cargar">
 
-                <button type="button" class="btn btn-primary boton boton-guardar-modelo" (click)="guardarModelo()" [disabled]="!modelo_entrenado">Guardar Modelo</button>
+                <button type="button" class="btn btn-primary boton boton-guardar-modelo" (click)="guardarModelo()">Guardar</button>
             </div>
             <div class="col col-md-6 div-btn-cargar">
 
-                <button type="input" class="btn btn-primary boton boton-cargar-modelo" (click)="cargarModelo()">Cargar Modelo</button>
-
+                <button type="input" class="btn btn-primary boton boton-cargar-modelo" (click)="cargarModelo()">Importar</button>
+                <input type="file" (change)="cvChanged($event)" accept=".json" id="input_config">
             </div>
 
             

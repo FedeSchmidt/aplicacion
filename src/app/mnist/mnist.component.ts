@@ -215,6 +215,7 @@ export class MnistComponent implements OnInit {
 			console.log('Imágenes Cargadas');
 			this.cargarEjemplos(0);
 		});
+
 		//const auxiliar = new Auxiliar();
 		// var canv = <HTMLCanvasElement>document.getElementById('test-chart');
 		// var ctx = canv.getContext('2d');
@@ -299,56 +300,118 @@ export class MnistComponent implements OnInit {
 		// this.canvas.addEventListener('mousemove', this.mouseMove);
 	}
 
-	async guardarModelo() {
+	guardarModelo() {
 		let obj = {
 			learning_ratio: this.learning_ratio,
 			epochs: this.epochs,
-			batch_check: this.batch_check,
-			batch_size: this.batch_size,
 			metric: this.metric,
 			cost_function: this.cost_function,
-			regularization: this.regularization,
-			regularization_ratio: this.regularization_ratio,
+			batch_size: this.batch_size,
 			net: this.net
 		};
+		let name = 'model.json';
+		const type = name.split('.').pop();
 
-		// localStorage.setItem('neural_model_IA', JSON.stringify(obj));
-
-		if (this.modelo_entrenado) {
-			console.log('Guardando modelo entrenado');
-			await this.model.save('indexeddb://model_IA').then((response) => {
-				console.log(response);
-			});
-		}
+		const a = document.createElement('a');
+		a.href = URL.createObjectURL(
+			new Blob([ JSON.stringify(obj) ], { type: `text/${type === 'txt' ? 'plain' : type}` })
+		);
+		a.download = name;
+		a.click();
 	}
 
-	async cargarModelo() {
-		this.model = await tf.loadLayersModel('indexeddb://model_IA').then((response) => {
-			console.log(response);
+	cargarModelo() {
+		// this.model = await tf.loadLayersModel('indexeddb://model_IA').then((response) => {
+		// 	console.log(response);
+		// });
+		var input = document.createElement('input');
+		input.setAttribute('type', 'file');
+		input.setAttribute('accept', '.json');
+
+		input.addEventListener('change', function(e) {
+			let file_to_read = e['path'][0].files[0];
+			var fileread = new FileReader();
+			fileread.onloadend = (e) => {
+				var content = fileread.result;
+				console.log(content);
+				let data = JSON.parse(content as string);
+
+				console.log(data);
+
+				// this.learning_ratio = data.learning_ratio;
+				// this.epochs = datos.epochs;
+				// this.batch_size = datos.batch_size;
+				// this.metric = datos.metric;
+				// this.cost_function = datos.cost_function;
+				// this.net = datos.net;
+			};
+			fileread.readAsText(file_to_read);
 		});
+
+		input.click();
+		input.remove();
 	}
-	// cvChanged(e) {
-	// 	this.sumate.cv = e.target.files[0] !== undefined ? e.target.files[0] : undefined;
-	// 	if(this.sumate.cv !== undefined)
-	// 	  // en this.sumate.cv.name tenemos el nombre
-	// 	else
-	// 	  // aca no hay archivo cargado
-	//   }
+
+	cvChanged(event) {
+		// console.log(event);
+		let file_to_read = event.target.files[0];
+		var fileread = new FileReader();
+
+		fileread.onloadend = (e) => {
+			// var content = fileread.result;
+			// console.log(content);
+			let data = JSON.parse(fileread.result as string);
+
+			// console.log(data);
+
+			this.learning_ratio = data.learning_ratio;
+			this.epochs = data.epochs;
+			this.batch_size = data.batch_size;
+			this.metric = data.metric;
+			this.cost_function = data.cost_function;
+			this.net = data.net;
+			event.srcElement.value = '';
+		};
+		// fileread.onloadend = function(e) {
+		// 	var content = fileread.result;
+		// 	console.log(content);
+		// 	data = JSON.parse(content as string);
+
+		// 	console.log(data);
+
+		// 	this.learning_ratio = data.learning_ratio;
+		// 	// this.epochs = datos.epochs;
+		// 	// this.batch_size = datos.batch_size;
+		// 	// this.metric = datos.metric;
+		// 	// this.cost_function = datos.cost_function;
+		// 	// this.net = datos.net;
+		// };
+		fileread.readAsText(file_to_read);
+
+		//console.log(data);
+		//console.log(data);
+		// let sumate: File;
+		// sumate.cv = e.target.files[0] !== undefined ? e.target.files[0] : undefined;
+		// if(this.sumate.cv !== undefined)
+		//   // en this.sumate.cv.name tenemos el nombre
+		// else
+		// aca no hay archivo cargado
+	}
 
 	async recuperarModelo() {
-		let object = localStorage.getItem('neural_model_IA');
-		let datos = JSON.parse(object);
-		this.learning_ratio = datos.learning_ratio;
-		this.epochs = datos.epochs;
-		this.batch_check = datos.batch_check;
-		this.batch_size = datos.batch_size;
-		this.metric = datos.metric;
-		this.cost_function = datos.cost_function;
-		this.regularization = datos.regularization;
-		this.regularization_ratio = datos.regularization_ratio;
-		this.net = datos.net;
+		var input = document.createElement('input');
+		input.setAttribute('type', 'file');
+		input.setAttribute('accept', 'json');
+		input.click();
 
-		this.model = await tf.loadLayersModel('indexeddb://model_IA');
+		// let object = localStorage.getItem('neural_model_IA');
+		// let datos = JSON.parse(object);
+		// this.learning_ratio = datos.learning_ratio;
+		// this.epochs = datos.epochs;
+		// this.batch_size = datos.batch_size;
+		// this.metric = datos.metric;
+		// this.cost_function = datos.cost_function;
+		// this.net = datos.net;
 	}
 
 	armarStringCapa(tipo, units, activacion, ratio) {
@@ -719,11 +782,22 @@ export class MnistComponent implements OnInit {
 		let labels = tf.tensor2d(this.testLabels, [ this.testLabels.length / this.NUM_CLASSES, this.NUM_CLASSES ]);
 		//console.log(this.sliceEjemplos);
 
+		//console.log(this.testImages.length / this.IMAGE_SIZE);
+
 		if (numExamples != null) {
 			//const r = Math.floor(Math.random() * (this.testImages.length / this.IMAGE_SIZE + 1)) - numExamples;
+			let a = this.sliceEjemplos;
+			// let b;
+			if (this.sliceEjemplos < 0) {
+				a = this.NUM_TEST_ELEMENTS + this.sliceEjemplos;
+				// b = a + numExamples;
+			}
+			// else {
+			// 	b = a + numExamples;
+			// }
 
-			xs = xs.slice([ this.sliceEjemplos, 0, 0, 0 ], [ numExamples, this.IMAGE_H, this.IMAGE_W, 1 ]);
-			labels = labels.slice([ this.sliceEjemplos, 0 ], [ numExamples, this.NUM_CLASSES ]);
+			xs = xs.slice([ a, 0, 0, 0 ], [ numExamples, this.IMAGE_H, this.IMAGE_W, 1 ]);
+			labels = labels.slice([ a, 0 ], [ numExamples, this.NUM_CLASSES ]);
 			this.sliceEjemplos = this.sliceEjemplos + numExamples;
 		}
 
