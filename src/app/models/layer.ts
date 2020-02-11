@@ -9,6 +9,7 @@ export class Layer {
 		public units: number,
 		public activation: string,
 		public input_shape,
-		public ratio: number
+		public ratio: number,
+		public window: string
 	) {}
 }

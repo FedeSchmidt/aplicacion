@@ -1,7 +1,55 @@
+
+<!-- MODAL INFORMACIÓN -->
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="exampleModalCenterTitle">Modelo {{tipo_red}}</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body bodymodal">
+                <div *ngIf="tipo_red == 'Simple'; else modalConv">
+                    <ul>
+                        <li>Es un tipo de red neuronal más sencillo</li>
+                        <li>Solo puede utilizarse capas Dense y Dropout</li>
+                        <li>Una capa Flatten solo se utiliza al inicio</li>
+                    </ul>
+
+                </div>
+                <ng-template #modalConv>
+                    <ul>
+                        <li>En una red convolucional puede utilizarse cualquiera de las capas disponibles, pero se deben
+                            respetar ciertas restricciones</li>
+                        <li>La primera capa será convolucional</li>
+                        <li>No pueden ponerse dos capas Dropout consecutivas</li>
+                        <li>La red debe terminar con al menos una capa Dense con función de activación Softmax</li>
+                        <li>Antes de cualquier capa Dense, debe ponerse una capa Flatten para adaptar el formato de los
+                            datos</li>
+                    </ul>
+                </ng-template>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
 <!-- PARAMETROS Y ESTRUCTURA DE LA RED -->
 <div class="row justify-content-around">
     <div class="col-12 col-md-10 col-lg-3 generales">
+        <div>
 
+            <div class="col col-6 div-select-tipo">
+                <select name="tipo_red" class="select-tipo-red" [(ngModel)]="tipo_red" (change)="actualizarRedBase()">
+                    <option value="Simple" [selected]="tipo_red == 'Simple'">Simple</option>
+                    <option value="Convolucional" [selected]="tipo_red == 'Convolucional'">Convolucional</option>
+                </select>
+            </div>
+            <i class="fas fa-info-circle ml-2 btn-info-modal" data-toggle="modal" data-target="#exampleModalCenter"></i>
+        </div>
         <!-- <h5>Parámetros Generales</h5> -->
         <div>
             <h6>Learning ratio <i class="fas fa-info-circle ml-1"
@@ -36,7 +84,7 @@
                     title="Permite tomar los elementos de entrenamiento de a grupos"></i>
             </h6>
             <div class="input-batch" (change)="actualizarCodigo()">
-                <input type="number" class="form-control" [(ngModel)]="batch_size">
+                <input type="number" name="batch_size" class="form-control" [(ngModel)]="batch_size">
             </div>
         </div>
         <div>
@@ -58,6 +106,7 @@
     </div>
 
     <div class="col-12 col-md-10 col-lg-8 table-responsive">
+
         <table id="net-table" class="table tabla-red">
             <thead>
                 <tr>
@@ -71,6 +120,8 @@
                             title="Función que controla las salidas de cada neurona"></i></th>
                     <th scope="col">Dropout Rate<i class="fas fa-info-circle ml-1 mt-1 float-right"
                             title="Ratio de desconexión de capa Dropout"></i></th>
+                    <th scope="col">Window<i class="fas fa-info-circle ml-1 mt-1 float-right"
+                            title="Ventana de convolución o pooling"></i></th>
                     <th scope="col">
                         <button type="button" class="btn btn-primary boton" (click)="newLayer()"
                             [disabled]="cant_capas == max_capas">Nueva Capa</button>
@@ -78,37 +129,80 @@
                 </tr>
             </thead>
             <tbody id="net-table-body">
-                <tr *ngFor="let layer of net; let i = index"
-                    [ngClass]="{'disabled_layer': i == 0 || i == net.length -1}">
-                    <div *ngIf="i==0 || i == net.length -1 then primeraCapa; else noPrimeraCapa"></div>
-                    <ng-template #primeraCapa>
-                        <td>{{i}}</td>
-                        <td>{{layer.type}}</td>
-                        <td>{{layer.units}}</td>
-                        <td>{{layer.activation}}</td>
-                        <td>-</td>
-                    </ng-template>
-                    <ng-template #noPrimeraCapa>
-                        <td>{{i}}</td>
-                        <td>
-                            <select class="form-control" (change)="onChange($event.target.value, 'type', i)">
-                                <option *ngFor="let tipo of tipos_capas" [selected]="tipo == layer.type">{{tipo}}
-                                </option>
-                            </select>
-                        </td>
-                        <div *ngIf="layer.type == 'Dropout'; then rowDropout else rowDense"></div>
-                        <ng-template #rowDropout>
+                <div *ngIf="tipo_red == 'Simple'; then redSimple else redConv"></div>
+                <ng-template #redSimple>
+
+                    <tr *ngFor="let layer of net; let i = index"
+                        [ngClass]="{'disabled_layer': i == 0 || i == net.length -1}">
+                        <div *ngIf="i==0 || i == net.length -1 then primeraCapaSimple; else noPrimeraCapaSimple"></div>
+                        <ng-template #primeraCapaSimple>
+                            <td>{{i}}</td>
+                            <td>{{layer.type}}</td>
+                            <td>{{layer.units}}</td>
+                            <td>{{layer.activation}}</td>
                             <td>-</td>
                             <td>-</td>
-                            <td>
-                                <input type="number" step=".01" class="form-control"
-                                    (change)="onChange($event.target.value, 'ratio', i)" value={{layer.ratio}}>
-                            </td>
                         </ng-template>
-                        <ng-template #rowDense>
+                        <ng-template #noPrimeraCapaSimple>
+                            <td>{{i}}</td>
                             <td>
+                                <select class="form-control" (change)="onChange($event.target.value, 'type', i)">
+                                    <option *ngFor="let tipo of tipos_capas" [selected]="tipo == layer.type"
+                                        [disabled]="tipo == 'Convolutional' || tipo == 'Pooling' || tipo == 'Flatten'">
+                                        {{tipo}}
+                                    </option>
+                                </select>
+                            </td>
+                            <div *ngIf="layer.type == 'Dropout'; then rowDropout else rowDense"></div>
+                            <ng-template #rowDropout>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>
+                                    <input type="number" step=".01" class="form-control"
+                                        (change)="onChange($event.target.value, 'ratio', i)" value={{layer.ratio}}>
+                                </td>
+                                <td>-</td>
+                            </ng-template>
+                            <ng-template #rowDense>
+                                <td>
+                                    <input type="number" class="form-control"
+                                        (change)="onChange($event.target.value, 'units', i)" value={{layer.units}}>
+                                </td>
+                                <td>
+                                    <select class="form-control"
+                                        (change)="onChange($event.target.value, 'activation', i)">
+                                        <option *ngFor="let tipo of activations" [selected]="tipo == layer.activation">
+                                            {{tipo}}
+                                        </option>
+                                    </select>
+                                </td>
+                                <td>-</td>
+                                <td>-</td>
+                            </ng-template>
+                            <td><i class="fas fa-times" (click)="removeLayer(i)"></i>
+                                <i class="fas fa-chevron-up ml-3" [ngClass]="{'disabled_move': i == 1}"
+                                    (click)="moverCapa(i, -1)"></i>
+                                <i class="fas fa-chevron-down ml-3" [ngClass]="{'disabled_move': i == net.length - 2}"
+                                    (click)="moverCapa(i, 1)"></i></td>
+                        </ng-template>
+                    </tr>
+                </ng-template>
+                <ng-template #redConv>
+
+                    <tr *ngFor="let layer of net; let i = index" [ngClass]="{'disabled_layer': i == net.length -1}">
+
+
+                        <div *ngIf="i==0 then primeraCapaConv; else noPrimeraCapaConv"></div>
+
+                        <ng-template #primeraCapaConv>
+                            <td class="disabled_conv_layer">{{i}}</td>
+                            <td class="disabled_conv_layer">Convolutional</td>
+
+                            <td>
+
                                 <input type="number" class="form-control"
                                     (change)="onChange($event.target.value, 'units', i)" value={{layer.units}}>
+
                             </td>
                             <td>
                                 <select class="form-control" (change)="onChange($event.target.value, 'activation', i)">
@@ -118,12 +212,120 @@
                                 </select>
                             </td>
                             <td>-</td>
+
+                            <td>
+                                <select class="form-control" (change)="onChange($event.target.value, 'window', i)">
+                                    <option *ngFor="let w of windows" [selected]="w == layer.window"
+                                        [disabled]="w == '2x2'">
+                                        {{w}}
+                                    </option>
+                                </select>
+                            </td>
                         </ng-template>
-                        <td><i class="fas fa-times" (click)="removeLayer(i)"></i>
-                            <i class="fas fa-chevron-up ml-3" [ngClass]="{'disabled_move': i == 1}" (click)="moverCapa(i, -1)"></i>
-                            <i class="fas fa-chevron-down ml-3" [ngClass]="{'disabled_move': i == net.length - 2}" (click)="moverCapa(i, 1)"></i></td>
-                    </ng-template>
-                </tr>
+                        <ng-template #noPrimeraCapaConv>
+                            <div *ngIf="i == net.length -1; then ultimaCapaConv else capaConvNormal"></div>
+
+                            <ng-template #ultimaCapaConv>
+                                <td>{{i}}</td>
+                                <td>{{layer.type}}</td>
+                                <td>{{layer.units}}</td>
+                                <td>{{layer.activation}}</td>
+                                <td>-</td>
+                                <td>-</td>
+                            </ng-template>
+                            <ng-template #capaConvNormal>
+                                <td>{{i}}</td>
+
+                                <td>
+                                    <select class="form-control" (change)="onChange($event.target.value, 'type', i)">
+                                        <option *ngFor="let tipo of tipos_capas" [selected]="tipo == layer.type"
+                                            [disabled]="listaValidos(i).indexOf(tipo) == -1">{{tipo}}
+                                        </option>
+                                    </select>
+                                </td>
+                                <div *ngIf="layer.type == 'Dropout'; then rowDropout else rowNoDropout"></div>
+                                <ng-template #rowDropout>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>
+                                        <input type="number" step=".01" class="form-control"
+                                            (change)="onChange($event.target.value, 'ratio', i)" value={{layer.ratio}}>
+                                    </td>
+                                    <td>-</td>
+                                </ng-template>
+                                <ng-template #rowNoDropout>
+                                    <div *ngIf="layer.type == 'Pooling'; then rowPooling else rowNoPooling"></div>
+                                    <ng-template #rowPooling>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>
+                                            <select class="form-control"
+                                                (change)="onChange($event.target.value, 'window', i)">
+                                                <option *ngFor="let w of windows" [selected]="w == layer.window"
+                                                    [disabled]="w !== '2x2'">
+                                                    {{w}}
+                                                </option>
+                                            </select>
+                                        </td>
+                                    </ng-template>
+                                    <ng-template #rowNoPooling>
+                                        <div *ngIf="layer.type == 'Flatten'; then rowFlatten else rowNoFlatten"></div>
+                                        <ng-template #rowFlatten>
+                                            <td>-</td>
+                                            <td>-</td>
+                                            <td>-</td>
+                                            <td>-</td>
+                                        </ng-template>
+                                        <ng-template #rowNoFlatten>
+                                            <td>
+
+                                                <input type="number" class="form-control"
+                                                    (change)="onChange($event.target.value, 'units', i)"
+                                                    value={{layer.units}}>
+
+                                            </td>
+                                            <td>
+                                                <select class="form-control"
+                                                    (change)="onChange($event.target.value, 'activation', i)">
+                                                    <option *ngFor="let tipo of activations"
+                                                        [selected]="tipo == layer.activation">
+                                                        {{tipo}}
+                                                    </option>
+                                                </select>
+                                            </td>
+                                            <td>-</td>
+                                            <div *ngIf="layer.type == 'Dense'; then rowDense else rowConv"></div>
+                                            <ng-template #rowDense>
+                                                <td>-</td>
+                                            </ng-template>
+                                            <ng-template #rowConv>
+                                                <td>
+                                                    <select class="form-control"
+                                                        (change)="onChange($event.target.value, 'window', i)">
+                                                        <option *ngFor="let w of windows" [selected]="w == layer.window"
+                                                            [disabled]="w == '2x2'">
+                                                            {{w}}
+                                                        </option>
+                                                    </select>
+                                                </td>
+                                            </ng-template>
+
+                                        </ng-template>
+
+                                    </ng-template>
+
+                                </ng-template>
+                                <td><i class="fas fa-times" (click)="removeLayer(i)"></i>
+                                    <i class="fas fa-chevron-up ml-3" [ngClass]="{'disabled_move': i == 1}"
+                                        (click)="moverCapa(i, -1)"></i>
+                                    <i class="fas fa-chevron-down ml-3"
+                                        [ngClass]="{'disabled_move': i == net.length - 2}"
+                                        (click)="moverCapa(i, 1)"></i></td>
+                            </ng-template>
+                        </ng-template>
+                    </tr>
+                </ng-template>
             </tbody>
         </table>
     </div>
@@ -136,7 +338,7 @@
         <div class="col-12">
             <button type="button" class="btn btn-primary btn-entrenar boton" (click)="entrenar()"
                 [disabled]="entrenando">¡Entrenar!</button>
-            <!-- <button type="button" class="btn btn-primary btn-entrenar boton" (click)="createModel()"[disabled]="entrenando">crear!</button> -->
+            <!-- <button type="button" class="btn btn-primary btn-entrenar boton" (click)="test()">crear!</button> -->
             <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !resultados}">
                 <table class="table tabla-entrenamiento">
                     <thead>

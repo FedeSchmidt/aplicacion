@@ -37,7 +37,46 @@
 	box-shadow: none;
 }
 
+.btn-info-modal {
+	font-size: large;
+}
+
+.btn-info-modal:hover {
+	cursor: pointer;
+}
+
+.bodymodal {
+	padding: 20px;
+	text-align: justify;
+}
+
+.bodymodal ul {
+	margin: 0;
+	padding-inline-start: 20px;
+}
 // PARAMETROS Y ESTRUCTURA DE LA RED
+.div-select-tipo {
+	padding: 1px 0px;
+	display: inline-block;
+}
+
+.select-tipo-red {
+	width: 100%;
+	border: none;
+	background: #bc9180;
+	border-radius: 4px;
+	padding: 6px 12px;
+	color: white;
+}
+
+.select-tipo-red:hover {
+	cursor: pointer;
+}
+
+.select-tipo-red option {
+	background: white;
+	color: black;
+}
 
 .generales {
 	padding: 10px 15px;
@@ -141,7 +180,9 @@
 	width: 20%;
 }
 
-.disabled_layer {
+.disabled_layer,
+.disabled_conv_layer,
+.disabled_conv_layer {
 	opacity: 0.7;
 }
 
@@ -154,6 +195,10 @@
 
 .disabled_move {
 	opacity: 0.4;
+}
+
+option:disabled {
+	color: #b7b5b5;
 }
 
 // ENTRENAMIENTO

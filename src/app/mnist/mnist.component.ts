@@ -3,6 +3,7 @@ import * as tf from '@tensorflow/tfjs';
 import { Layer } from './../models/layer';
 import Chart from 'chart.js';
 import { JsonPipe } from '@angular/common';
+import { VirtualTimeScheduler } from 'rxjs';
 
 @Component({
 	selector: 'app-mnist',
@@ -50,8 +51,9 @@ export class MnistComponent implements OnInit {
 
 	//Parámetros y red
 	net = [];
-	max_capas = 8;
+	max_capas = 12;
 	cant_capas = 0;
+	tipo_red = 'Simple';
 	model: any;
 	validation_accuracy = '---';
 	trainset_accuracy = '---';
@@ -67,8 +69,9 @@ export class MnistComponent implements OnInit {
 	cost_function = 'categoricalCrossentropy';
 
 	//Nodos
-	tipos_capas = [ 'Dense', 'Dropout' ];
+	tipos_capas = [ 'Dense', 'Convolutional', 'Pooling', 'Dropout', 'Flatten' ];
 	activations = [ 'ReLU', 'Sigmoid', 'Linear', 'Softmax' ];
+	windows = [ '2x2', '3x3', '5x5' ];
 
 	//graficos de entrenamiento
 	dataLossChart = {
@@ -158,8 +161,10 @@ export class MnistComponent implements OnInit {
 	constructor() {}
 
 	ngOnInit() {
-		this.armarRedBase();
+		//Arma la red de inicio
+		this.actualizarRedBase();
 
+		//Carga los gráficos de entrenamiento
 		var canv = <HTMLCanvasElement>document.getElementById('loss-chart');
 		var ctx = canv.getContext('2d');
 
@@ -178,15 +183,38 @@ export class MnistComponent implements OnInit {
 			options: this.optionsAccChart
 		});
 
+		//Carga las imágenes y las separa en conjunto de entrenamiento y test con el load.
+		//Después carga 10 ejemplos del conjunto de test para mostrarlos.
 		this.load().then(() => {
 			this.cargarEjemplos(0);
 		});
 	}
 
-	armarRedBase() {
-		this.net.push(new Layer('Flatten', 784, '-', [ this.IMAGE_H, this.IMAGE_W, 1 ], 0));
-		this.net.push(new Layer('Dense', 42, 'ReLU', null, 0));
-		this.net.push(new Layer('Dense', 10, 'Softmax', null, 0));
+	// armarRedBase() {
+	// 	this.net.push(new Layer('Flatten', 784, '-', [ this.IMAGE_H, this.IMAGE_W, 1 ], 0, '3x3'));
+	// 	this.net.push(new Layer('Dense', 42, 'ReLU', null, 0, '3x3'));
+	// 	this.net.push(new Layer('Dense', 10, 'Softmax', null, 0, '3x3'));
+	// 	this.cant_capas = this.net.length;
+
+	// 	this.actualizarCodigo1();
+	// 	this.actualizarCodigo();
+	// }
+
+	actualizarRedBase() {
+		//Arma una red modelo según el tipo que elige el usuario
+		//Actualiza el código que se ve abajo.
+		this.net = [];
+		if (this.tipo_red === 'Simple') {
+			this.net.push(new Layer('Flatten', 784, '-', [ this.IMAGE_H, this.IMAGE_W, 1 ], 0, '3x3'));
+			this.net.push(new Layer('Dense', 42, 'ReLU', null, 0, '3x3'));
+			this.net.push(new Layer('Dense', 10, 'Softmax', null, 0, '3x3'));
+		} else {
+			this.net.push(new Layer('Convolutional', 32, 'ReLU', [ this.IMAGE_H, this.IMAGE_W, 1 ], 0, '3x3'));
+			this.net.push(new Layer('Convolutional', 32, 'ReLU', [ this.IMAGE_H, this.IMAGE_W, 1 ], 0, '3x3'));
+			this.net.push(new Layer('Pooling', 32, '-', [ this.IMAGE_H, this.IMAGE_W, 1 ], 0, '2x2'));
+			this.net.push(new Layer('Flatten', 32, '-', [ this.IMAGE_H, this.IMAGE_W, 1 ], 0, '2x2'));
+			this.net.push(new Layer('Dense', 10, 'Softmax', null, 0, '3x3'));
+		}
 		this.cant_capas = this.net.length;
 
 		this.actualizarCodigo1();
@@ -194,6 +222,7 @@ export class MnistComponent implements OnInit {
 	}
 
 	showCodigos() {
+		//Para mostrar o esconder la sección de código de abajo.
 		this.mostrar_codigo = !this.mostrar_codigo;
 	}
 
@@ -248,7 +277,10 @@ export class MnistComponent implements OnInit {
 	}
 
 	guardarModelo() {
+		//Armo un objeto con los parámetros y la estructura de la red.
+		//Lo descarga con un link ficticio
 		let obj = {
+			tipo_red: this.tipo_red,
 			learning_ratio: this.learning_ratio,
 			epochs: this.epochs,
 			metric: this.metric,
@@ -256,6 +288,7 @@ export class MnistComponent implements OnInit {
 			batch_size: this.batch_size,
 			net: this.net
 		};
+
 		let name = 'model.json';
 		const type = name.split('.').pop();
 
@@ -268,47 +301,97 @@ export class MnistComponent implements OnInit {
 	}
 
 	cvChanged(event) {
+		//Cargo un archivo  y actualizo los parámetros de red y la estructura
+		//Actualiza el código de abajo y el valor del input se resetea para que pueda usarlo de nuevo, si no no anda.
 		let file_to_read = event.target.files[0];
 		var fileread = new FileReader();
 
 		fileread.onloadend = (e) => {
 			let data = JSON.parse(fileread.result as string);
 
+			this.tipo_red = data.tipo_red;
 			this.learning_ratio = data.learning_ratio;
 			this.epochs = data.epochs;
 			this.batch_size = data.batch_size;
 			this.metric = data.metric;
 			this.cost_function = data.cost_function;
 			this.net = data.net;
+			this.actualizarCodigo1();
+			this.actualizarCodigo();
 			event.srcElement.value = '';
 		};
 		fileread.readAsText(file_to_read);
 	}
 
-	armarStringCapa(tipo, units, activacion, ratio) {
-		if (tipo === 'dense') {
+	armarStringCapa(tipo, units, activacion, ratio, window) {
+		//Arma el string de una capa, es solo manejo de string con la estructura de la red.
+		let w = window.charAt(0);
+		if (tipo === 'dense')
 			return (
 				'\tmodel.add( tf.layers.' + tipo + '( { units: ' + units + ", activation: '" + activacion + "' } ) );"
 			);
-		} else {
-			return '\tmodel.add( tf.layers.' + tipo + '( ' + ratio + ' ) );';
-		}
+		else if (tipo === 'dropout') return '\tmodel.add( tf.layers.' + tipo + '( ' + ratio + ' ) );';
+		else if (tipo === 'flatten') return '\tmodel.add( tf.layers.' + tipo + '() );';
+		else if (tipo === 'pooling') return '\tmodel.add( tf.layers.' + tipo + '((' + w + ', ' + w + '));';
+		else
+			return (
+				'\tmodel.add( tf.layers.conv2D( { ' +
+				units +
+				', (' +
+				w +
+				', ' +
+				w +
+				"), activation: '" +
+				activacion +
+				"' } ) );"
+			);
 	}
 
 	actualizarCodigo1() {
+		//idem anterior.
 		this.model_code = [];
 		this.model_code.push('createModel() {');
 		this.model_code.push('\tmodel = tf.sequential();');
-		this.model_code.push('\tmodel.add( tf.layers.flatten( { inputShape: [ 28, 28, 1] } ) );');
-		for (let i = 1; i < this.net.length; i++) {
+		if (this.tipo_red === 'Simple') {
+			this.model_code.push('\tmodel.add( tf.layers.flatten( { inputShape: [ 28, 28, 1 ] } ) );');
+
+			for (let i = 1; i < this.net.length; i++) {
+				this.model_code.push(
+					this.armarStringCapa(
+						this.net[i].type.toLowerCase(),
+						this.net[i].units.toString().toLowerCase(),
+						this.net[i].activation.toLowerCase(),
+						this.net[i].ratio.toString(),
+						this.net[i].window.toLowerCase()
+					)
+				);
+			}
+		} else {
+			let wf = this.net[0].window.charAt(0);
+
 			this.model_code.push(
-				this.armarStringCapa(
-					this.net[i].type.toLowerCase(),
-					this.net[i].units.toString().toLowerCase(),
-					this.net[i].activation.toLowerCase(),
-					this.net[i].ratio.toString()
-				)
+				'\tmodel.add( tf.layers.conv2D( { ' +
+					this.net[0].units +
+					', (' +
+					wf +
+					', ' +
+					wf +
+					"), activation: '" +
+					this.net[0].activation +
+					"', inputShape: [ 28, 28, 1 ] } ) );"
 			);
+
+			for (let i = 1; i < this.net.length; i++) {
+				this.model_code.push(
+					this.armarStringCapa(
+						this.net[i].type.toLowerCase(),
+						this.net[i].units.toString().toLowerCase(),
+						this.net[i].activation.toLowerCase(),
+						this.net[i].ratio.toString(),
+						this.net[i].window.toLowerCase()
+					)
+				);
+			}
 		}
 		this.model_code.push('\treturn model;');
 		this.model_code.push('}');
@@ -320,6 +403,7 @@ export class MnistComponent implements OnInit {
 	}
 
 	actualizarCodigo2() {
+		//idem anterior
 		this.compile_code = [];
 		this.compile_code.push('model.compile( {');
 		this.compile_code.push('\toptimizer: tf.train.sgd(' + this.learning_ratio + '),');
@@ -328,6 +412,7 @@ export class MnistComponent implements OnInit {
 		this.compile_code.push('} );');
 	}
 	actualizarCodigo3() {
+		//idem anterior
 		this.train_code = [];
 		this.train_code.push('train(){');
 		this.train_code.splice(1, 1, '\tbatchSize = ' + this.batch_size + ';');
@@ -348,8 +433,9 @@ export class MnistComponent implements OnInit {
 		this.train_code.splice(16, 1, "\tconsole.log( 'Accuracy', logs.acc );");
 		this.train_code.splice(17, 1, '}');
 	}
-	//de la red.
+
 	createDenseModel() {
+		//Crea red estática, no depende de la tabla que maneja el usuario. No se usa este método. Ver createModel
 		const model = tf.sequential();
 		model.add(tf.layers.flatten({ inputShape: [ this.IMAGE_H, this.IMAGE_W, 1 ] }));
 		model.add(tf.layers.dense({ units: 42, activation: 'relu' }));
@@ -358,6 +444,8 @@ export class MnistComponent implements OnInit {
 	}
 
 	createModel() {
+		//Crea estructura según la tabla
+		//La primera capa se agrega a mano, luego un for sobre el arreglo net va agregando las capas
 		const model = tf.sequential();
 		model.add(tf.layers.flatten({ inputShape: [ this.IMAGE_H, this.IMAGE_W, 1 ] }));
 
@@ -375,13 +463,68 @@ export class MnistComponent implements OnInit {
 		return model;
 	}
 
+	createConvModel() {
+		//Igual al anterior pero para una red convolucional. Separado para modular.
+		const model = tf.sequential();
+		let w = parseInt(this.net[0].window.charAt(0));
+		model.add(
+			tf.layers.conv2d({
+				filters: this.net[0].units,
+				kernelSize: w,
+				inputShape: [ this.IMAGE_H, this.IMAGE_W, 1 ]
+			})
+		);
+		for (let i = 1; i < this.net.length; i++) {
+			let layer = this.net[i];
+			let tipo = this.net[i].type;
+			if (tipo === 'Dense') {
+				let act = layer.activation.toLowerCase();
+				model.add(tf.layers.dense({ units: layer.units, activation: act }));
+			} else if (tipo === 'Dropout') {
+				model.add(tf.layers.dropout(layer.ratio));
+			} else if (tipo === 'Convolutional') {
+				let act = layer.activation.toLowerCase();
+				let w = parseInt(layer.window.charAt(0));
+				model.add(tf.layers.conv2d({ filters: layer.units, kernelSize: w, activation: act }));
+			} else if (tipo === 'Flatten') {
+				model.add(tf.layers.flatten());
+			} else {
+				let w = parseInt(layer.window.charAt(0));
+				model.add(tf.layers.maxPooling2d({ poolSize: w }));
+			}
+		}
+		//model.summary();
+		return model;
+	}
+
+	// test() {
+	// 	// if (this.tipo_red === 'Simple') this.createModel();
+	// 	// else this.createConvModel();
+	// 	//console.log(this.net);
+	// }
+
 	entrenar() {
 		this.entrenando = true;
 		this.resultados = true;
 
-		this.model = this.createModel();
+		//Reinicia la tabla de entrenamiento y los gráficos (para permitir dos entrenamientos seguidos sin recargar)
+		this.epochActual = 0;
+		this.res_obtenidos = {};
+		this.dataLossChart.labels = [];
+		this.dataLossChart.datasets[0].data = [];
+		this.dataLossChart.datasets[1].data = [];
+		this.dataAccChart.labels = [];
+		this.dataAccChart.datasets[0].data = [];
+		this.dataAccChart.datasets[1].data = [];
+
+		//Crea modelo, segun sea simple o convolucional.
+		if (this.tipo_red === 'Simple') this.model = this.createModel();
+		else this.model = this.createConvModel();
+
+		//Variable para que se muestren los porcentajes y los gráficos con opacidad 1.
 		this.hayResultados = true;
 
+		//Entrena y luego predice sobre los ejemplos que se veían en pantalla.
 		this.train().then(() => {
 			this.entrenando = false;
 			this.sliceEjemplos = this.sliceEjemplos - 10;
@@ -409,9 +552,12 @@ export class MnistComponent implements OnInit {
 
 	async train() {
 		let loss;
+
+		//Elige la función de costo del modelo
 		if (this.cost_function === 'categoricalCrossentropy') loss = 'categoricalCrossentropy';
 		else loss = tf.losses.meanSquaredError;
 
+		//Compilación
 		this.model.compile({
 			optimizer: tf.train.sgd(this.learning_ratio),
 			loss: loss,
@@ -454,14 +600,14 @@ export class MnistComponent implements OnInit {
 						this.res_obtenidos[this.epochActual + 1]['loss'] = logs.loss.toFixed(4);
 						this.res_obtenidos[this.epochActual + 1]['acc'] = logs.acc.toFixed(4);
 					}
-					this.trainset_accuracy = logs.acc.toFixed(2) + '%';
+					this.trainset_accuracy = parseFloat(logs.acc.toFixed(4)) * 100 + '%';
 					// console.log(
 					// 	`Training... (` + `${(trainBatchCount / totalNumBatches * 100).toFixed(1)}%` + ` complete).`
 					// );
 				},
 				onEpochEnd: async (epoch, logs) => {
-					this.validation_accuracy = logs.val_acc.toFixed(2) + '%';
-					this.trainset_accuracy = logs.acc.toFixed(2) + '%';
+					this.validation_accuracy = parseFloat(logs.val_acc.toFixed(4)) * 100 + '%';
+					this.trainset_accuracy = parseFloat(logs.acc.toFixed(4)) * 100 + '%';
 
 					this.res_obtenidos[this.epochActual + 1]['loss'] = logs.loss.toFixed(4);
 					this.res_obtenidos[this.epochActual + 1]['acc'] = logs.acc.toFixed(4);
@@ -577,7 +723,7 @@ export class MnistComponent implements OnInit {
 	}
 
 	newLayer() {
-		this.net.splice(this.net.length - 1, 0, new Layer('Dense', 0, 'ReLU', null, 0));
+		this.net.splice(this.net.length - 1, 0, new Layer('Dense', 0, 'ReLU', null, 0, '3x3'));
 		this.cant_capas++;
 		this.actualizarCodigo1();
 	}
@@ -609,15 +755,53 @@ export class MnistComponent implements OnInit {
 	}
 
 	onChange(value, field, index) {
-		if (field !== 'units' && field !== 'ratio') {
+		console.log(value);
+		if (field === 'units') this.net[index][field] = parseInt(value);
+		else if (field === 'ratio') this.net[index][field] = parseFloat(value);
+		else if (field === 'type') {
 			this.net[index][field] = value;
-		} else {
-			if (field === 'units') this.net[index][field] = parseInt(value);
-			else if (field === 'ratio') {
-				this.net[index][field] = parseFloat(value);
+			//Si cambié a una capa pooling tengo que setear window
+			if (value === 'Pooling') {
+				this.net[index]['window'] = '2x2';
+			} else {
+				//Si cambié a una capa convolucional, tengo que setear activation, units y window
+				if (value === 'Convolutional') {
+					this.net[index]['activation'] = 'ReLU';
+					this.net[index]['units'] = 32;
+					this.net[index]['window'] = '3x3';
+				} else {
+					//Si cambié a una capa Flatten no importa, no seteo nada
+					//Si cambié a una capa Dropout tengo que setear ratio
+					if (value === 'Dropout') this.net[index]['ratio'] = 0;
+					else {
+						//Si cambié a una capa Dense tengo que setear units y activation
+						if (value === 'Dense') {
+							this.net[index]['units'] = 0;
+							this.net[index]['activation'] = 'ReLU';
+						}
+					}
+				}
 			}
 		}
+
 		this.actualizarCodigo1();
+	}
+
+	listaValidos(i) {
+		let ant = this.net[i - 1].type;
+		if (ant == 'Convolutional') return [ 'Convolutional', 'Pooling', 'Dropout', 'Flatten' ];
+		else if (ant == 'Dense') return [ 'Dense', 'Dropout' ];
+		else if (ant == 'Flatten') return [ 'Dense' ];
+		else if (ant == 'Pooling') return [ 'Convolutional', 'Pooling', 'Dropout', 'Flatten' ];
+		else {
+			//ant era dropout
+			let ant2 = this.net[i - 2].type;
+			if (ant2 == 'Dense') return [ 'Dense' ];
+			else {
+				//ant2 es convolutional o pooling
+				return [ 'Convolutional', 'Pooling', 'Flatten' ];
+			}
+		}
 	}
 
 	unsorted() {
