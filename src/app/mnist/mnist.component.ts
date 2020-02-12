@@ -29,6 +29,10 @@ export class MnistComponent implements OnInit {
 	trainLabels: any;
 	testLabels: any;
 
+	mostrar_info = false;
+	error = false;
+	mensaje_error = "";
+
 	//codigo equivalente
 	mostrar_codigo = true;
 	model_code = [];
@@ -497,41 +501,46 @@ export class MnistComponent implements OnInit {
 		return model;
 	}
 
-	// test() {
-	// 	// if (this.tipo_red === 'Simple') this.createModel();
-	// 	// else this.createConvModel();
-	// 	//console.log(this.net);
-	// }
-
-	entrenar() {
-		this.entrenando = true;
-		this.resultados = true;
-
-		//Reinicia la tabla de entrenamiento y los gráficos (para permitir dos entrenamientos seguidos sin recargar)
-		this.epochActual = 0;
-		this.res_obtenidos = {};
-		this.dataLossChart.labels = [];
-		this.dataLossChart.datasets[0].data = [];
-		this.dataLossChart.datasets[1].data = [];
-		this.dataAccChart.labels = [];
-		this.dataAccChart.datasets[0].data = [];
-		this.dataAccChart.datasets[1].data = [];
-
-		//Crea modelo, segun sea simple o convolucional.
-		if (this.tipo_red === 'Simple') this.model = this.createModel();
-		else this.model = this.createConvModel();
-
-		//Variable para que se muestren los porcentajes y los gráficos con opacidad 1.
-		this.hayResultados = true;
-
-		//Entrena y luego predice sobre los ejemplos que se veían en pantalla.
-		this.train().then(() => {
-			this.entrenando = false;
-			this.sliceEjemplos = this.sliceEjemplos - 10;
-			this.cargarEjemplos(0);
-		});
+	test() {
+		// if (this.tipo_red === 'Simple') this.createModel();
+		// else this.createConvModel();
+		//console.log(this.net);
+		this.chequearEstructura();
+		//this.mostrar_info = !this.mostrar_info;
 	}
 
+	entrenar() {
+		if(this.chequearEstructura()){
+
+			this.entrenando = true;
+			this.resultados = true;
+			
+			//Reinicia la tabla de entrenamiento y los gráficos (para permitir dos entrenamientos seguidos sin recargar)
+			this.epochActual = 0;
+			this.res_obtenidos = {};
+			this.dataLossChart.labels = [];
+			this.dataLossChart.datasets[0].data = [];
+			this.dataLossChart.datasets[1].data = [];
+			this.dataAccChart.labels = [];
+			this.dataAccChart.datasets[0].data = [];
+			this.dataAccChart.datasets[1].data = [];
+			
+			//Crea modelo, segun sea simple o convolucional.
+			if (this.tipo_red === 'Simple') this.model = this.createModel();
+			else this.model = this.createConvModel();
+			
+			//Variable para que se muestren los porcentajes y los gráficos con opacidad 1.
+			this.hayResultados = true;
+			
+			//Entrena y luego predice sobre los ejemplos que se veían en pantalla.
+			this.train().then(() => {
+				this.entrenando = false;
+				this.sliceEjemplos = this.sliceEjemplos - 10;
+				this.cargarEjemplos(0);
+			});
+		}
+		}
+		
 	draw(image, canvas) {
 		const [ width, height ] = [ 28, 28 ];
 		canvas.width = width;
@@ -802,6 +811,22 @@ export class MnistComponent implements OnInit {
 				return [ 'Convolutional', 'Pooling', 'Flatten' ];
 			}
 		}
+	}
+
+	chequearEstructura(){
+		let salida = true;
+		if(this.tipo_red === 'Convolucional'){
+			for(let i = 1; i < this.net.length; i++){
+				let validos = this.listaValidos(i);
+				if(validos.indexOf(this.net[i]['type']) == -1){
+					// console.log("error de estructura" + (i-1) + "," + (i));
+					this.error = true;
+					this.mensaje_error = "Error en la estructura. Conflicto entre las capas "+ (i-1) +" y "+i;
+					salida = false;
+				}
+			}
+		}
+		return salida;
 	}
 
 	unsorted() {

@@ -24,8 +24,6 @@ export class InformacionComponent implements OnInit {
 	constructor() {}
 
 	ngOnInit() {
-		console.log(this.expanded);
-
 		let d = JSON.stringify(Datos);
 		this.data = JSON.parse(d)[0];
 	}

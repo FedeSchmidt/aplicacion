@@ -1,3 +1,12 @@
+<div *ngIf="error" class="col-10 alert alert-danger alert-dismissible fade show" role="alert">
+    {{mensaje_error}}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+    <button type="button" class="close" aria-label="Close">
+        <i class="fa fa-search" data-toggle="modal" data-target="#exampleModalCenter" (click)="closeAlert()"></i>
+    </button>
+  </div>
 
 <!-- MODAL INFORMACIÓN -->
 <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
@@ -20,6 +29,9 @@
 
                 </div>
                 <ng-template #modalConv>
+                    <div *ngIf="error" class="div-mensaje-error">
+                        {{mensaje_error}}
+                    </div>
                     <ul>
                         <li>En una red convolucional puede utilizarse cualquiera de las capas disponibles, pero se deben
                             respetar ciertas restricciones</li>
@@ -338,7 +350,7 @@
         <div class="col-12">
             <button type="button" class="btn btn-primary btn-entrenar boton" (click)="entrenar()"
                 [disabled]="entrenando">¡Entrenar!</button>
-            <!-- <button type="button" class="btn btn-primary btn-entrenar boton" (click)="test()">crear!</button> -->
+            <button type="button" class="btn btn-primary btn-entrenar boton" (click)="test()">chequear</button>
             <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !resultados}">
                 <table class="table tabla-entrenamiento">
                     <thead>
