@@ -509,6 +509,10 @@ export class MnistComponent implements OnInit {
 		//this.mostrar_info = !this.mostrar_info;
 	}
 
+	closeAlert(){
+		this.error = !this.error;
+	}
+
 	entrenar() {
 		if(this.chequearEstructura()){
 

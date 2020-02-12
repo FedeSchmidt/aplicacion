@@ -1,10 +1,10 @@
 <div *ngIf="error" class="col-10 alert alert-danger alert-dismissible fade show" role="alert">
     {{mensaje_error}}
     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
+      <span aria-hidden="true" (click)="closeAlert()">&times;</span>
     </button>
-    <button type="button" class="close" aria-label="Close">
-        <i class="fa fa-search" data-toggle="modal" data-target="#exampleModalCenter" (click)="closeAlert()"></i>
+    <button type="button" class="close">
+        <i class="fa fa-search open-modal" data-toggle="modal" data-target="#exampleModalCenter"></i>
     </button>
   </div>
 
