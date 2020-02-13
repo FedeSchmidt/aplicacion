@@ -45,6 +45,10 @@
 	cursor: pointer;
 }
 
+button:focus {
+	outline: none !important;
+}
+
 .bodymodal {
 	padding: 20px;
 	text-align: justify;
@@ -71,6 +75,11 @@
 
 .select-tipo-red:hover {
 	cursor: pointer;
+}
+
+.select-tipo-red:focus {
+	outline: none !important;
+	border: none !important;
 }
 
 .select-tipo-red option {
@@ -272,7 +281,7 @@ option:disabled {
 	padding: 15px;
 }
 
-@media (min-width: 1350px) {
+@media (min-width: 1750px) {
 	#model-code {
 		width: 33%;
 		padding: 30px;
@@ -312,8 +321,17 @@ option:disabled {
 	margin-top: 4px;
 }
 
-.open-modal{
+.open-modal {
+	right: 2%;
+}
+
+.open-modal i {
 	font-size: initial;
+}
+
+.alert {
+	margin: 0 !important;
+	border-radius: 5px;
 }
 
 .ejemplos-right:hover,

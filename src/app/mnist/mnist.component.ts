@@ -31,7 +31,7 @@ export class MnistComponent implements OnInit {
 
 	mostrar_info = false;
 	error = false;
-	mensaje_error = "";
+	mensaje_error = '';
 
 	//codigo equivalente
 	mostrar_codigo = true;
@@ -230,6 +230,11 @@ export class MnistComponent implements OnInit {
 		this.mostrar_codigo = !this.mostrar_codigo;
 	}
 
+	closeAlert() {
+		//Cierra una alenta de error
+		this.error = !this.error;
+	}
+
 	cargarEjemplos(diff) {
 		if (diff < 0) {
 			this.sliceEjemplos = this.sliceEjemplos - 20;
@@ -281,27 +286,29 @@ export class MnistComponent implements OnInit {
 	}
 
 	guardarModelo() {
-		//Armo un objeto con los parámetros y la estructura de la red.
-		//Lo descarga con un link ficticio
-		let obj = {
-			tipo_red: this.tipo_red,
-			learning_ratio: this.learning_ratio,
-			epochs: this.epochs,
-			metric: this.metric,
-			cost_function: this.cost_function,
-			batch_size: this.batch_size,
-			net: this.net
-		};
+		if (this.chequearEstructura()) {
+			//Armo un objeto con los parámetros y la estructura de la red.
+			//Lo descarga con un link ficticio
+			let obj = {
+				tipo_red: this.tipo_red,
+				learning_ratio: this.learning_ratio,
+				epochs: this.epochs,
+				metric: this.metric,
+				cost_function: this.cost_function,
+				batch_size: this.batch_size,
+				net: this.net
+			};
 
-		let name = 'model.json';
-		const type = name.split('.').pop();
+			let name = 'model.json';
+			const type = name.split('.').pop();
 
-		const a = document.createElement('a');
-		a.href = URL.createObjectURL(
-			new Blob([ JSON.stringify(obj) ], { type: `text/${type === 'txt' ? 'plain' : type}` })
-		);
-		a.download = name;
-		a.click();
+			const a = document.createElement('a');
+			a.href = URL.createObjectURL(
+				new Blob([ JSON.stringify(obj) ], { type: `text/${type === 'txt' ? 'plain' : type}` })
+			);
+			a.download = name;
+			a.click();
+		}
 	}
 
 	cvChanged(event) {
@@ -501,24 +508,21 @@ export class MnistComponent implements OnInit {
 		return model;
 	}
 
-	test() {
-		// if (this.tipo_red === 'Simple') this.createModel();
-		// else this.createConvModel();
-		//console.log(this.net);
-		this.chequearEstructura();
-		//this.mostrar_info = !this.mostrar_info;
-	}
-
-	closeAlert(){
-		this.error = !this.error;
-	}
+	// test() {
+	// 	// if (this.tipo_red === 'Simple') this.createModel();
+	// 	// else this.createConvModel();
+	// 	//console.log(this.net);
+	// 	//this.chequearEstructura();
+	// 	//this.mostrar_info = !this.mostrar_info;
+	// 	//this.error = false;
+	// }
 
 	entrenar() {
-		if(this.chequearEstructura()){
-
+		if (this.chequearEstructura()) {
+			this.error = false;
 			this.entrenando = true;
 			this.resultados = true;
-			
+
 			//Reinicia la tabla de entrenamiento y los gráficos (para permitir dos entrenamientos seguidos sin recargar)
 			this.epochActual = 0;
 			this.res_obtenidos = {};
@@ -528,14 +532,14 @@ export class MnistComponent implements OnInit {
 			this.dataAccChart.labels = [];
 			this.dataAccChart.datasets[0].data = [];
 			this.dataAccChart.datasets[1].data = [];
-			
+
 			//Crea modelo, segun sea simple o convolucional.
 			if (this.tipo_red === 'Simple') this.model = this.createModel();
 			else this.model = this.createConvModel();
-			
+
 			//Variable para que se muestren los porcentajes y los gráficos con opacidad 1.
 			this.hayResultados = true;
-			
+
 			//Entrena y luego predice sobre los ejemplos que se veían en pantalla.
 			this.train().then(() => {
 				this.entrenando = false;
@@ -543,8 +547,8 @@ export class MnistComponent implements OnInit {
 				this.cargarEjemplos(0);
 			});
 		}
-		}
-		
+	}
+
 	draw(image, canvas) {
 		const [ width, height ] = [ 28, 28 ];
 		canvas.width = width;
@@ -613,14 +617,17 @@ export class MnistComponent implements OnInit {
 						this.res_obtenidos[this.epochActual + 1]['loss'] = logs.loss.toFixed(4);
 						this.res_obtenidos[this.epochActual + 1]['acc'] = logs.acc.toFixed(4);
 					}
-					this.trainset_accuracy = parseFloat(logs.acc.toFixed(4)) * 100 + '%';
+					// this.trainset_accuracy = parseFloat(logs.acc.toFixed(4)) * 100 + '%';
+					this.trainset_accuracy = (logs.acc * 100).toFixed(2) + '%';
 					// console.log(
 					// 	`Training... (` + `${(trainBatchCount / totalNumBatches * 100).toFixed(1)}%` + ` complete).`
 					// );
 				},
 				onEpochEnd: async (epoch, logs) => {
-					this.validation_accuracy = parseFloat(logs.val_acc.toFixed(4)) * 100 + '%';
-					this.trainset_accuracy = parseFloat(logs.acc.toFixed(4)) * 100 + '%';
+					this.validation_accuracy = (logs.val_acc * 100).toFixed(2) + '%';
+					this.trainset_accuracy = (logs.acc * 100).toFixed(2) + '%';
+					// this.validation_accuracy = parseFloat(logs.val_acc.toFixed(4)) * 100 + '%';
+					// this.trainset_accuracy = parseFloat(logs.acc.toFixed(4)) * 100 + '%';
 
 					this.res_obtenidos[this.epochActual + 1]['loss'] = logs.loss.toFixed(4);
 					this.res_obtenidos[this.epochActual + 1]['acc'] = logs.acc.toFixed(4);
@@ -817,15 +824,14 @@ export class MnistComponent implements OnInit {
 		}
 	}
 
-	chequearEstructura(){
+	chequearEstructura() {
 		let salida = true;
-		if(this.tipo_red === 'Convolucional'){
-			for(let i = 1; i < this.net.length; i++){
+		if (this.tipo_red === 'Convolucional') {
+			for (let i = 1; i < this.net.length; i++) {
 				let validos = this.listaValidos(i);
-				if(validos.indexOf(this.net[i]['type']) == -1){
-					// console.log("error de estructura" + (i-1) + "," + (i));
+				if (validos.indexOf(this.net[i]['type']) == -1) {
 					this.error = true;
-					this.mensaje_error = "Error en la estructura. Conflicto entre las capas "+ (i-1) +" y "+i;
+					this.mensaje_error = 'Error en la estructura. Conflicto entre las capas ' + (i - 1) + ' y ' + i;
 					salida = false;
 				}
 			}

@@ -1,12 +1,14 @@
-<div *ngIf="error" class="col-10 alert alert-danger alert-dismissible fade show" role="alert">
-    {{mensaje_error}}
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-      <span aria-hidden="true" (click)="closeAlert()">&times;</span>
-    </button>
-    <button type="button" class="close">
-        <i class="fa fa-search open-modal" data-toggle="modal" data-target="#exampleModalCenter"></i>
-    </button>
-  </div>
+<div *ngIf="error" class="row justify-content-around">
+    <div class="col-11 alert alert-danger alert-dismissible fade show" role="alert">
+        {{mensaje_error}}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true" (click)="closeAlert()">&times;</span>
+        </button>
+        <button type="button" class="close open-modal">
+            <i class="fa fa-search" data-toggle="modal" data-target="#exampleModalCenter"></i>
+        </button>
+    </div>
+</div>
 
 <!-- MODAL INFORMACIÓN -->
 <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
@@ -26,12 +28,8 @@
                         <li>Solo puede utilizarse capas Dense y Dropout</li>
                         <li>Una capa Flatten solo se utiliza al inicio</li>
                     </ul>
-
                 </div>
                 <ng-template #modalConv>
-                    <div *ngIf="error" class="div-mensaje-error">
-                        {{mensaje_error}}
-                    </div>
                     <ul>
                         <li>En una red convolucional puede utilizarse cualquiera de las capas disponibles, pero se deben
                             respetar ciertas restricciones</li>
@@ -42,9 +40,7 @@
                             datos</li>
                     </ul>
                 </ng-template>
-
             </div>
-
         </div>
     </div>
 </div>
@@ -53,7 +49,6 @@
 <div class="row justify-content-around">
     <div class="col-12 col-md-10 col-lg-3 generales">
         <div>
-
             <div class="col col-6 div-select-tipo">
                 <select name="tipo_red" class="select-tipo-red" [(ngModel)]="tipo_red" (change)="actualizarRedBase()">
                     <option value="Simple" [selected]="tipo_red == 'Simple'">Simple</option>
@@ -64,13 +59,13 @@
         </div>
         <!-- <h5>Parámetros Generales</h5> -->
         <div>
-            <h6>Learning ratio <i class="fas fa-info-circle ml-1"
+            <h6>Ratio de Aprendizaje <i class="fas fa-info-circle ml-1"
                     title="Controla los cambios en los pesos y biases de la red neuronal"></i></h6>
             <input type="number" step=".01" class="form-control" [(ngModel)]="learning_ratio"
                 (change)="actualizarCodigo()">
         </div>
         <div>
-            <h6>Epochs (Ciclos) <i class="fas fa-info-circle ml-1"
+            <h6>Ciclos <i class="fas fa-info-circle ml-1"
                     title="Número de veces en que la red procesa el conjunto de entrenamiento"></i></h6>
             <input type="number" class="form-control" name="epochs" [(ngModel)]="epochs" (change)="actualizarCodigo()">
         </div>
@@ -92,7 +87,7 @@
             </select>
         </div>
         <div>
-            <h6>Batch Size <i class="fas fa-info-circle ml-1"
+            <h6>Tamaño de Batch <i class="fas fa-info-circle ml-1"
                     title="Permite tomar los elementos de entrenamiento de a grupos"></i>
             </h6>
             <div class="input-batch" (change)="actualizarCodigo()">
@@ -130,10 +125,10 @@
                             title="Número de neuronas en la capa"></i></th>
                     <th scope="col">Función<i class="fas fa-info-circle ml-1 mt-1 float-right"
                             title="Función que controla las salidas de cada neurona"></i></th>
-                    <th scope="col">Dropout Rate<i class="fas fa-info-circle ml-1 mt-1 float-right"
+                    <th scope="col">Ratio Dropout<i class="fas fa-info-circle ml-1 mt-1 float-right"
                             title="Ratio de desconexión de capa Dropout"></i></th>
-                    <th scope="col">Window<i class="fas fa-info-circle ml-1 mt-1 float-right"
-                            title="Ventana de convolución o pooling"></i></th>
+                    <th scope="col">Ventana<i class="fas fa-info-circle ml-1 mt-1 float-right"
+                            title="Dimensiones de grilla de convolución o pooling"></i></th>
                     <th scope="col">
                         <button type="button" class="btn btn-primary boton" (click)="newLayer()"
                             [disabled]="cant_capas == max_capas">Nueva Capa</button>
@@ -350,12 +345,12 @@
         <div class="col-12">
             <button type="button" class="btn btn-primary btn-entrenar boton" (click)="entrenar()"
                 [disabled]="entrenando">¡Entrenar!</button>
-            <button type="button" class="btn btn-primary btn-entrenar boton" (click)="test()">chequear</button>
+            <!-- <button type="button" class="btn btn-primary btn-entrenar boton" (click)="test()">chequear</button> -->
             <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !resultados}">
                 <table class="table tabla-entrenamiento">
                     <thead>
                         <tr>
-                            <th scope="col">Epoch</th>
+                            <th scope="col">Ciclo</th>
                             <th scope="col">Loss</th>
                             <th scope="col">Accuracy</th>
                             <th scope="col">Validation Loss</th>
