@@ -2,8 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
 import { Layer } from './../models/layer';
 import Chart from 'chart.js';
-import { JsonPipe } from '@angular/common';
-import { VirtualTimeScheduler } from 'rxjs';
 
 @Component({
 	selector: 'app-mnist',
@@ -807,6 +805,7 @@ export class MnistComponent implements OnInit {
 		this.actualizarCodigo1();
 	}
 
+	//i: entero número de la capa
 	listaValidos(i) {
 		let ant = this.net[i - 1].type;
 		if (ant == 'Convolutional') return [ 'Convolutional', 'Pooling', 'Dropout', 'Flatten' ];

@@ -33,12 +33,12 @@
 
         <div *ngIf="expanded.tipos; then j1 else j2"></div>
         <ng-template #j1>
-            <div class="titulo" (click)="show('tipos')">Tipos de capas <i class="fas fa-sort-up float-right pt-2"></i></div>
+            <div class="titulo" (click)="show('tipos')">Tipos de Redes y Capas <i class="fas fa-sort-up float-right pt-2"></i></div>
             <div class="informacion">{{data.tipos}}</div>
             
         </ng-template>
         <ng-template #j2>
-            <div class="titulo" (click)="show('tipos')">Tipos de capas <i class="fas fa-sort-down float-right"></i></div>
+            <div class="titulo" (click)="show('tipos')">Tipos de Redes y Capas <i class="fas fa-sort-down float-right"></i></div>
         </ng-template>
         
         <div *ngIf="expanded.learning_rate; then b1 else b2"></div>
