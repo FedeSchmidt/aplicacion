@@ -43,6 +43,8 @@ export class MnistComponent implements OnInit {
 	modelo_entrenado = false;
 	prediction_labels;
 	predictions: any;
+	y_pred: any;
+	barChartData: Array<number>;
 	imagenes_cargadas = false;
 
 	//Entrenamiento
@@ -116,6 +118,19 @@ export class MnistComponent implements OnInit {
 		]
 	};
 
+	dataBarChart = {
+		labels: [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ],
+		datasets: [
+			{
+				barPercentage: 0.7,
+				data: [ 0.5, 0.5, 0.4, 0, 1 ],
+				backgroundColor: 'rgba(188, 145, 128, 0.5)',
+				borderColor: 'rgba(188, 145, 128, 1)',
+				borderWidth: 1
+			}
+		]
+	};
+
 	optionsLossChart = {
 		title: {
 			display: true,
@@ -157,8 +172,35 @@ export class MnistComponent implements OnInit {
 			]
 		}
 	};
+
+	optionsBarChart = {
+		title: {
+			display: false
+		},
+		legend: {
+			display: false
+		},
+		scales: {
+			xAxes: [
+				{
+					gridLines: {
+						display: false
+					}
+				}
+			],
+			yAxes: [
+				{
+					ticks: {
+						suggestedMin: 0,
+						suggestedMax: 1
+					}
+				}
+			]
+		}
+	};
 	accuracyChart: any;
 	lossChart: any;
+	predictionChart: any;
 
 	constructor() {}
 
@@ -183,6 +225,14 @@ export class MnistComponent implements OnInit {
 			type: 'line',
 			data: this.dataAccChart,
 			options: this.optionsAccChart
+		});
+
+		var canv = <HTMLCanvasElement>document.getElementById('bar-chart');
+		var ctx3 = canv.getContext('2d');
+		this.predictionChart = new Chart(ctx3, {
+			type: 'bar',
+			data: this.dataBarChart,
+			options: this.optionsBarChart
 		});
 
 		//Carga las imágenes y las separa en conjunto de entrenamiento y test con el load.
@@ -230,7 +280,7 @@ export class MnistComponent implements OnInit {
 
 	closeAlert() {
 		//Cierra una alenta de error
-		this.error = !this.error;
+		this.error = false;
 	}
 
 	cargarEjemplos(diff) {
@@ -245,6 +295,12 @@ export class MnistComponent implements OnInit {
 		this.prediction_labels = labels;
 		this.imagenes_cargadas = true;
 		const testExamples = this.data.xs.shape[0];
+
+		if (this.modelo_entrenado) {
+			this.y_pred = this.model.predict(this.data.xs);
+			this.predictions = Array.from(this.y_pred.argMax(1).dataSync());
+			this.barChartData = Array.from(this.y_pred.dataSync());
+		}
 
 		for (let i = 0; i < testExamples; i++) {
 			const image = this.data.xs.slice([ i, 0 ], [ 1, this.data.xs.shape[1] ]);
@@ -261,8 +317,6 @@ export class MnistComponent implements OnInit {
 				document.getElementById('real' + i).innerHTML = 'Real: ' + this.prediction_labels[i];
 			}
 			if (this.modelo_entrenado) {
-				let y_pred = this.model.predict(this.data.xs);
-				this.predictions = Array.from(y_pred.argMax(1).dataSync());
 				if (document.getElementById('prediccion' + i) == undefined) {
 					let prediccion = document.createElement('h6');
 					prediccion.id = 'prediccion' + i;
@@ -279,6 +333,18 @@ export class MnistComponent implements OnInit {
 					canvas.classList.remove('pred-mal');
 					canvas.classList.add('pred-bien');
 				}
+
+				canvas.setAttribute('data-toggle', 'modal');
+				canvas.setAttribute('data-target', '#modalBarChart');
+				canvas.addEventListener('click', () => {
+					let probs = [] as any;
+					for (let j = 10 * i; j < 10 * i + 10; j++) {
+						let p = parseFloat(this.barChartData[j].toFixed(3));
+						probs.push(p);
+					}
+					this.dataBarChart.datasets[0].data = probs;
+					this.predictionChart.update();
+				});
 			}
 		}
 	}
@@ -773,7 +839,6 @@ export class MnistComponent implements OnInit {
 	}
 
 	onChange(value, field, index) {
-		console.log(value);
 		if (field === 'units') this.net[index][field] = parseInt(value);
 		else if (field === 'ratio') this.net[index][field] = parseFloat(value);
 		else if (field === 'type') {
@@ -808,31 +873,34 @@ export class MnistComponent implements OnInit {
 	//i: entero número de la capa
 	listaValidos(i) {
 		let ant = this.net[i - 1].type;
-		if (ant == 'Convolutional') return [ 'Convolutional', 'Pooling', 'Dropout', 'Flatten' ];
-		else if (ant == 'Dense') return [ 'Dense', 'Dropout' ];
-		else if (ant == 'Flatten') return [ 'Dense' ];
-		else if (ant == 'Pooling') return [ 'Convolutional', 'Pooling', 'Dropout', 'Flatten' ];
-		else {
-			//ant era dropout
-			let ant2 = this.net[i - 2].type;
-			if (ant2 == 'Dense') return [ 'Dense' ];
+		if (this.tipo_red === 'Convolucional') {
+			if (ant == 'Convolutional') return [ 'Convolutional', 'Pooling', 'Dropout', 'Flatten' ];
+			else if (ant == 'Dense') return [ 'Dense', 'Dropout' ];
+			else if (ant == 'Flatten') return [ 'Dense' ];
+			else if (ant == 'Pooling') return [ 'Convolutional', 'Pooling', 'Dropout', 'Flatten' ];
 			else {
-				//ant2 es convolutional o pooling
-				return [ 'Convolutional', 'Pooling', 'Flatten' ];
+				//ant era dropout
+				let ant2 = this.net[i - 2].type;
+				if (ant2 == 'Dense') return [ 'Dense' ];
+				else {
+					//ant2 es convolutional o pooling
+					return [ 'Convolutional', 'Pooling', 'Flatten' ];
+				}
 			}
+		} else if (this.tipo_red === 'Simple') {
+			if (ant == 'Dense') return [ 'Dense', 'Dropout' ];
+			else return [ 'Dense' ];
 		}
 	}
 
 	chequearEstructura() {
 		let salida = true;
-		if (this.tipo_red === 'Convolucional') {
-			for (let i = 1; i < this.net.length; i++) {
-				let validos = this.listaValidos(i);
-				if (validos.indexOf(this.net[i]['type']) == -1) {
-					this.error = true;
-					this.mensaje_error = 'Error en la estructura. Conflicto entre las capas ' + (i - 1) + ' y ' + i;
-					salida = false;
-				}
+		for (let i = 1; i < this.net.length; i++) {
+			let validos = this.listaValidos(i);
+			if (validos.indexOf(this.net[i]['type']) == -1) {
+				this.error = true;
+				this.mensaje_error = 'Error en la estructura. Conflicto entre las capas ' + (i - 1) + ' y ' + i;
+				salida = false;
 			}
 		}
 		return salida;

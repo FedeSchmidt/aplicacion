@@ -356,6 +356,11 @@ option:disabled {
 	border: 3px solid rgb(7, 163, 7);
 }
 
+.pred-mal:hover,
+.pred-bien:hover {
+	cursor: pointer;
+}
+
 .prediction-container {
 	display: inline-block;
 	width: 100px;

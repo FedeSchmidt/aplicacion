@@ -1,8 +1,8 @@
 <div *ngIf="error" class="row justify-content-around">
     <div class="col-11 alert alert-danger alert-dismissible fade show" role="alert">
         {{mensaje_error}}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true" (click)="closeAlert()">&times;</span>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)="closeAlert()">
+            <span aria-hidden="true">&times;</span>
         </button>
         <button type="button" class="close open-modal">
             <i class="fa fa-search" data-toggle="modal" data-target="#exampleModalCenter"></i>
@@ -24,9 +24,11 @@
             <div class="modal-body bodymodal">
                 <div *ngIf="tipo_red == 'Simple'; else modalConv">
                     <ul>
-                        <li>Es un tipo de red neuronal más sencillo</li>
-                        <li>Solo puede utilizarse capas Dense y Dropout</li>
+                        <li>Es el tipo de red neuronal más sencillo</li>
                         <li>Una capa Flatten solo se utiliza al inicio</li>
+                        <li>Luego solo puede utilizarse capas Dense y Dropout</li>
+                        <li>No se puede tener dos capas Dropout consecutivas</li>
+                        <li>No se puede tener una capa Dropout luego de la Flatten inicial</li>
                     </ul>
                 </div>
                 <ng-template #modalConv>
@@ -35,11 +37,31 @@
                             respetar ciertas restricciones</li>
                         <li>La primera capa será convolucional</li>
                         <li>No pueden ponerse dos capas Dropout consecutivas</li>
-                        <li>La red debe terminar con al menos una capa Dense con función de activación Softmax</li>
+                        <li>La red debe terminar con una capa Dense con función de activación Softmax</li>
                         <li>Antes de cualquier capa Dense, debe ponerse una capa Flatten para adaptar el formato de los
                             datos</li>
+                        <li>No se puede tener dos capas Dropout consecutivas</li>
+                        <li>No se puede tener una capa Dropout luego de la Flatten inicial</li>
                     </ul>
                 </ng-template>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL BARCHART -->
+<div class="modal fade" id="modalBarChart" tabindex="-1" role="dialog" aria-labelledby="modalBarChartTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="modalBarChartTitle">Probabilidades obtenidas</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body ">
+                <canvas id="bar-chart" height="auto"></canvas>
             </div>
         </div>
     </div>
@@ -56,6 +78,7 @@
                 </select>
             </div>
             <i class="fas fa-info-circle ml-2 btn-info-modal" data-toggle="modal" data-target="#exampleModalCenter"></i>
+            <!-- <i class="fas fa-info-circle ml-2 btn-info-modal" data-toggle="modal" data-target="#modalBarChart"></i> -->
         </div>
         <!-- <h5>Parámetros Generales</h5> -->
         <div>
@@ -155,7 +178,7 @@
                             <td>
                                 <select class="form-control" (change)="onChange($event.target.value, 'type', i)">
                                     <option *ngFor="let tipo of tipos_capas" [selected]="tipo == layer.type"
-                                        [disabled]="tipo == 'Convolutional' || tipo == 'Pooling' || tipo == 'Flatten'">
+                                        [disabled]="listaValidos(i).indexOf(tipo) == -1">
                                         {{tipo}}
                                     </option>
                                 </select>
@@ -388,6 +411,7 @@
                 <div class="col col-md-8 col-lg-6 d-inline-block">
                     <canvas id="loss-chart" height="auto"></canvas>
                 </div>
+
             </div>
         </div>
     </div>
