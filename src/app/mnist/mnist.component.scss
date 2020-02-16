@@ -150,8 +150,22 @@ button:focus {
 	width: 100%;
 	text-align: center;
 	border: 1px solid #ebebeb;
+	border-bottom-left-radius: 5px;
+	border-top-left-radius: 5px;
 	border-bottom-right-radius: 0px;
 	border-top-right-radius: 0px;
+}
+
+@media (max-width: 767px) {
+	.boton-guardar-modelo {
+		border-bottom-right-radius: 5px;
+		border-top-right-radius: 5px;
+	}
+
+	.labelImportar {
+		border-bottom-left-radius: 5px;
+		border-top-left-radius: 5px;
+	}
 }
 
 // .boton-cargar-modelo {
@@ -164,8 +178,15 @@ button:focus {
 
 .tabla-red {
 	width: 100%;
-	table-layout: fixed;
+	table-layout: unset;
+	//table-layout: fixed;
 	border: none;
+}
+
+@media (min-width: 576px) {
+	.tabla-red {
+		table-layout: fixed;
+	}
 }
 
 .tabla-red tr {
@@ -222,9 +243,24 @@ option:disabled {
 }
 
 .tabla-entrenamiento {
-	table-layout: fixed;
+	//table-layout: fixed;
+	table-layout: unset;
 	text-align: center;
 	color: black;
+}
+
+@media (min-width: 576px) {
+	.tabla-entrenamiento {
+		table-layout: fixed;
+	}
+
+	.div-charts {
+		padding: 0;
+	}
+
+	.div-cont-canvas {
+		padding: 0;
+	}
 }
 
 .tabla-entrenamiento tbody {
@@ -237,11 +273,19 @@ option:disabled {
 
 .datos-accuracy {
 	margin: 10px 0px;
-	display: inline-block;
+	//display: inline-block;
+}
+
+.dato {
+	width: 100%;
 }
 
 .div-charts {
 	text-align: center;
+}
+
+.div-cont-canvas {
+	display: inline-block;
 }
 
 // CODIGO EQUIVALENTE
@@ -265,6 +309,7 @@ option:disabled {
 #model-code {
 	margin: 0;
 	padding: 15px;
+	overflow-x: auto;
 }
 
 #compile-code {
@@ -274,11 +319,13 @@ option:disabled {
 	border-bottom: 1px dashed #bc9180;
 	border-right: none;
 	border-left: none;
+	overflow-x: auto;
 }
 
 #train-code {
 	margin: 0;
 	padding: 15px;
+	overflow-x: auto;
 }
 
 @media (min-width: 1750px) {

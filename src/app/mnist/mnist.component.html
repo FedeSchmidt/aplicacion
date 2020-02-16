@@ -210,9 +210,9 @@
                                 <td>-</td>
                             </ng-template>
                             <td><i class="fas fa-times" (click)="removeLayer(i)"></i>
-                                <i class="fas fa-chevron-up ml-3" [ngClass]="{'disabled_move': i == 1}"
+                                <i class="fas fa-chevron-up ml-2" [ngClass]="{'disabled_move': i == 1}"
                                     (click)="moverCapa(i, -1)"></i>
-                                <i class="fas fa-chevron-down ml-3" [ngClass]="{'disabled_move': i == net.length - 2}"
+                                <i class="fas fa-chevron-down ml-2" [ngClass]="{'disabled_move': i == net.length - 2}"
                                     (click)="moverCapa(i, 1)"></i></td>
                         </ng-template>
                     </tr>
@@ -347,9 +347,9 @@
 
                                 </ng-template>
                                 <td><i class="fas fa-times" (click)="removeLayer(i)"></i>
-                                    <i class="fas fa-chevron-up ml-3" [ngClass]="{'disabled_move': i == 1}"
+                                    <i class="fas fa-chevron-up ml-2" [ngClass]="{'disabled_move': i == 1}"
                                         (click)="moverCapa(i, -1)"></i>
-                                    <i class="fas fa-chevron-down ml-3"
+                                    <i class="fas fa-chevron-down ml-2"
                                         [ngClass]="{'disabled_move': i == net.length - 2}"
                                         (click)="moverCapa(i, 1)"></i></td>
                             </ng-template>
@@ -369,7 +369,7 @@
             <button type="button" class="btn btn-primary btn-entrenar boton" (click)="entrenar()"
                 [disabled]="entrenando">¡Entrenar!</button>
             <!-- <button type="button" class="btn btn-primary btn-entrenar boton" (click)="test()">chequear</button> -->
-            <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !resultados}">
+            <div [ngClass]="{'datos-accuracy': true, 'progress-opaco': !resultados, 'table-responsive': true}">
                 <table class="table tabla-entrenamiento">
                     <thead>
                         <tr>
@@ -399,16 +399,16 @@
                     </tbody>
                 </table>
                 <div class="row">
-                    <h6>Epoch {{epochActual}}/{{ epochs }}</h6>
-                    <h6 class="ml-4">Accuracy (conjunto de entrenamiento): {{ trainset_accuracy }}</h6>
-                    <h6 class="ml-4">Accuracy (conjunto de validación): {{ validation_accuracy }}</h6>
+                    <h6 class="dato">Epoch {{epochActual}}/{{ epochs }}</h6>
+                    <h6 class="dato">Accuracy (conjunto de entrenamiento): {{ trainset_accuracy }}</h6>
+                    <h6 class="dato">Accuracy (conjunto de validación): {{ validation_accuracy }}</h6>
                 </div>
             </div>
             <div [ngClass]="{'progress-opaco': !resultados}" class="col-12 div-charts">
-                <div class="col col-md-8 col-lg-6 d-inline-block">
+                <div class="col col-md-8 col-lg-6 div-cont-canvas">
                     <canvas id="accuracy-chart" height="auto"></canvas>
                 </div>
-                <div class="col col-md-8 col-lg-6 d-inline-block">
+                <div class="col col-md-8 col-lg-6 div-cont-canvas">
                     <canvas id="loss-chart" height="auto"></canvas>
                 </div>
 
