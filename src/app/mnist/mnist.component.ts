@@ -48,7 +48,7 @@ export class MnistComponent implements OnInit {
 	imagenes_cargadas = false;
 
 	//Entrenamiento
-	res_obtenidos = {};
+	res_obtenidos: any = {};
 	entrenando = false;
 	resultados = false;
 	hayResultados = false;
@@ -908,5 +908,6 @@ export class MnistComponent implements OnInit {
 
 	unsorted() {
 		//Ordenador para la tabla del proceso de entrenamiento. (vacío a propósito)
+		return 1;
 	}
 }
