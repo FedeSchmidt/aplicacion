@@ -72,7 +72,9 @@ export class MnistComponent implements OnInit {
 	metricas = [ 'accuracy' ];
 	metric = 'accuracy';
 	loss_functions = [ 'categorical_crossentropy', 'mean_squared_error' ];
+	optimizers = [ 'SGD', 'Adam' ];
 	cost_function = 'categorical_crossentropy';
+	optimizer = 'SGD';
 
 	//Nodos
 	tipos_capas = [ 'Dense', 'Convolutional', 'Pooling', 'Dropout', 'Flatten' ];
@@ -487,7 +489,11 @@ export class MnistComponent implements OnInit {
 		this.compile_code = [];
 		this.compile_code.push('// Compilamos el modelo');
 		this.compile_code.splice(1, 0, 'model.compile( ');
-		this.compile_code.splice(2, 0, '\t\toptimizer =  tf.train.sgd(' + this.learning_ratio + '),');
+		this.compile_code.splice(
+			2,
+			0,
+			'\t\toptimizer =  tf.train.' + this.optimizer.toLowerCase() + '(' + this.learning_ratio + '),'
+		);
 		this.compile_code.splice(3, 0, "\t\tloss = '" + this.cost_function + "',");
 		this.compile_code.splice(4, 0, "\t\tmetrics = [ '" + this.metric + "' ]");
 		this.compile_code.push(');');
@@ -642,7 +648,8 @@ export class MnistComponent implements OnInit {
 
 		//Compilación
 		this.model.compile({
-			optimizer: tf.train.sgd(this.learning_ratio),
+			optimizer:
+				this.optimizer === 'SGD' ? tf.train.sgd(this.learning_ratio) : tf.train.adam(this.learning_ratio),
 			loss: loss,
 			metrics: 'accuracy'
 		});

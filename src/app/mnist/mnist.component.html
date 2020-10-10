@@ -109,6 +109,15 @@
             </select>
         </div>
         <div>
+            <h6>Optimizador <i class="fas fa-info-circle ml-1"
+                    title="Algoritmo que busca a minimizar el error cometido"></i>
+            </h6>
+            <select class="form-control" name="optimizer" [(ngModel)]="optimizer" (change)="actualizarCodigo()">
+                <option *ngFor="let opt of optimizers">{{opt}}</option>
+
+            </select>
+        </div>
+        <div>
             <h6>Tamaño de Batch <i class="fas fa-info-circle ml-1"
                     title="Permite tomar los elementos de entrenamiento de a grupos"></i>
             </h6>
