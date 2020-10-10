@@ -43,6 +43,7 @@ export class MnistComponent implements OnInit {
 	modelo_entrenado = false;
 	prediction_labels;
 	predictions: any;
+	grados_conf: any;
 	y_pred: any;
 	barChartData: Array<number>;
 	imagenes_cargadas = false;
@@ -64,13 +65,14 @@ export class MnistComponent implements OnInit {
 
 	// parámetros generales
 	learning_ratio = 0.15;
-	epochs = 10;
+	// epochs = 10;
+	epochs = 2;
 	epochActual = 0;
 	batch_size = 120;
 	metricas = [ 'accuracy' ];
 	metric = 'accuracy';
-	loss_functions = [ 'categoricalCrossentropy', 'mean_squared_error' ];
-	cost_function = 'categoricalCrossentropy';
+	loss_functions = [ 'categorical_crossentropy', 'mean_squared_error' ];
+	cost_function = 'categorical_crossentropy';
 
 	//Nodos
 	tipos_capas = [ 'Dense', 'Convolutional', 'Pooling', 'Dropout', 'Flatten' ];
@@ -299,6 +301,9 @@ export class MnistComponent implements OnInit {
 		if (this.modelo_entrenado) {
 			this.y_pred = this.model.predict(this.data.xs);
 			this.predictions = Array.from(this.y_pred.argMax(1).dataSync());
+			const conf = this.y_pred.max(1);
+			const scalar = tf.scalar(100);
+			this.grados_conf = Array.from(tf.mul(conf, scalar).dataSync());
 			this.barChartData = Array.from(this.y_pred.dataSync());
 		}
 
@@ -321,7 +326,11 @@ export class MnistComponent implements OnInit {
 					let prediccion = document.createElement('h6');
 					prediccion.id = 'prediccion' + i;
 					prediccion.innerHTML = 'Predicción: ' + this.predictions[i];
+					let confianza = document.createElement('h6');
+					confianza.id = 'conf' + i;
+					confianza.innerHTML = 'Conf: ' + this.grados_conf[i].toFixed(2) + '%';
 					div.appendChild(prediccion);
+					div.appendChild(confianza);
 				} else {
 					document.getElementById('prediccion' + i).innerHTML = 'Predicción: ' + this.predictions[i];
 				}
@@ -402,33 +411,31 @@ export class MnistComponent implements OnInit {
 		//Arma el string de una capa, es solo manejo de string con la estructura de la red.
 		let w = window.charAt(0);
 		if (tipo === 'dense')
-			return (
-				'\tmodel.add( tf.layers.' + tipo + '( { units: ' + units + ", activation: '" + activacion + "' } ) );"
-			);
-		else if (tipo === 'dropout') return '\tmodel.add( tf.layers.' + tipo + '( ' + ratio + ' ) );';
-		else if (tipo === 'flatten') return '\tmodel.add( tf.layers.' + tipo + '() );';
-		else if (tipo === 'pooling') return '\tmodel.add( tf.layers.' + tipo + '((' + w + ', ' + w + '));';
+			return 'model.add( tf.layers.' + tipo + '( units = ' + units + ", activation = '" + activacion + "'));";
+		else if (tipo === 'dropout') return 'model.add( tf.layers.' + tipo + '( ' + ratio + ' ));';
+		else if (tipo === 'flatten') return 'model.add( tf.layers.' + tipo + '());';
+		else if (tipo === 'pooling') return 'model.add( tf.layers.' + tipo + '((' + w + ', ' + w + '));';
 		else
 			return (
-				'\tmodel.add( tf.layers.conv2D( { ' +
+				'model.add( tf.layers.conv2D( units = ' +
 				units +
-				', (' +
+				', filter = (' +
 				w +
 				', ' +
 				w +
-				"), activation: '" +
+				"), activation = '" +
 				activacion +
-				"' } ) );"
+				"'));"
 			);
 	}
 
 	actualizarCodigo1() {
 		//idem anterior.
 		this.model_code = [];
-		this.model_code.push('createModel() {');
-		this.model_code.push('\tmodel = tf.sequential();');
+		this.model_code.push('// Creamos la estructura de la RNA');
+		this.model_code.push('model = tf.sequential();');
 		if (this.tipo_red === 'Simple') {
-			this.model_code.push('\tmodel.add( tf.layers.flatten( { inputShape: [ 28, 28, 1 ] } ) );');
+			this.model_code.push('model.add( tf.layers.flatten( inputShape = (28, 28, 1)));');
 
 			for (let i = 1; i < this.net.length; i++) {
 				this.model_code.push(
@@ -445,15 +452,15 @@ export class MnistComponent implements OnInit {
 			let wf = this.net[0].window.charAt(0);
 
 			this.model_code.push(
-				'\tmodel.add( tf.layers.conv2D( { ' +
+				'model.add( tf.layers.conv2D( units = ' +
 					this.net[0].units +
-					', (' +
+					', filter = (' +
 					wf +
 					', ' +
 					wf +
-					"), activation: '" +
-					this.net[0].activation +
-					"', inputShape: [ 28, 28, 1 ] } ) );"
+					"), activation =  '" +
+					this.net[0].activation.toLowerCase() +
+					"', inputShape = (28, 28, 1)));"
 			);
 
 			for (let i = 1; i < this.net.length; i++) {
@@ -468,8 +475,6 @@ export class MnistComponent implements OnInit {
 				);
 			}
 		}
-		this.model_code.push('\treturn model;');
-		this.model_code.push('}');
 	}
 
 	actualizarCodigo() {
@@ -480,33 +485,30 @@ export class MnistComponent implements OnInit {
 	actualizarCodigo2() {
 		//idem anterior
 		this.compile_code = [];
-		this.compile_code.push('model.compile( {');
-		this.compile_code.push('\toptimizer: tf.train.sgd(' + this.learning_ratio + '),');
-		this.compile_code.splice(2, 1, "\tloss: '" + this.cost_function + "',");
-		this.compile_code.splice(3, 1, "\tmetrics: [ '" + this.metric + "' ]");
-		this.compile_code.push('} );');
+		this.compile_code.push('// Compilamos el modelo');
+		this.compile_code.splice(1, 0, 'model.compile( ');
+		this.compile_code.splice(2, 0, '\t\toptimizer =  tf.train.sgd(' + this.learning_ratio + '),');
+		this.compile_code.splice(3, 0, "\t\tloss = '" + this.cost_function + "',");
+		this.compile_code.splice(4, 0, "\t\tmetrics = [ '" + this.metric + "' ]");
+		this.compile_code.push(');');
 	}
 	actualizarCodigo3() {
 		//idem anterior
 		this.train_code = [];
-		this.train_code.push('train(){');
-		this.train_code.splice(1, 1, '\tbatchSize = ' + this.batch_size + ';');
-		this.train_code.splice(2, 1, '\ttrainEpochs = ' + this.epochs + ';');
-		this.train_code.splice(3, 1, '\ttrainData = getTrainData();');
-		this.train_code.splice(4, 1, '\ttestData = getTestData();');
-		this.train_code.splice(5, 1, '\tmodel.fit( trainData.images, trainData.labels, {');
-		this.train_code.splice(6, 1, '\t\tepochs: trainEpochs,');
-		this.train_code.splice(7, 1, '\t\tbatchSize: batchSize,');
-		this.train_code.splice(8, 1, '\t\tcallbacks: { onBatchEnd }');
-		this.train_code.splice(9, 1, '\t} );');
-		this.train_code.splice(10, 1, '\ttestResult = model.evaluate( testData.images, testData.labels );');
-		this.train_code.splice(11, 1, '\ttestAccuracyPercent = testResult[ 1 ].dataSync()[ 0 ] * 100;');
-		this.train_code.splice(12, 1, '\ttestAccuracy = parseFloat( testAccuracyPercent.toFixed(2) );');
-		this.train_code.splice(13, 1, '}');
-		this.train_code.splice(14, 1, '\n');
-		this.train_code.splice(15, 1, 'onBatchEnd( batch, logs ){');
-		this.train_code.splice(16, 1, "\tconsole.log( 'Accuracy', logs.acc );");
-		this.train_code.splice(17, 1, '}');
+		this.train_code.push('// Entrenamiento');
+		this.train_code.push('// Los datos son una colección de pares (ejemplo, label)');
+		this.train_code.splice(2, 0, 'data = [ ... cuerpo de datos ... ]');
+		this.train_code.splice(3, 0, 'batchSize = ' + this.batch_size + ';');
+		this.train_code.splice(4, 0, 'trainEpochs = ' + this.epochs + ';');
+		this.train_code.splice(5, 0, 'trainData, valData, testData = train_test_split(data);');
+		this.train_code.splice(6, 0, 'model.fit( trainData.images, trainData.labels,');
+		this.train_code.splice(7, 0, '\t\tepochs = trainEpochs,');
+		this.train_code.splice(8, 0, '\t\tbatchSize = batchSize,');
+		this.train_code.splice(9, 0, '\t\tvalidation_data = (valData.images, valData.labels)');
+		this.train_code.splice(10, 0, ');');
+		this.train_code.splice(11, 0, '// Predicciones');
+		this.train_code.splice(12, 0, 'test_results = model.predict(testData.images);');
+		this.train_code.splice(13, 0, 'predictions = tf.argMax(test_results, axis = 1);');
 	}
 
 	createDenseModel() {
@@ -635,7 +637,7 @@ export class MnistComponent implements OnInit {
 		let loss;
 
 		//Elige la función de costo del modelo
-		if (this.cost_function === 'categoricalCrossentropy') loss = 'categoricalCrossentropy';
+		if (this.cost_function === 'categorical_crossentropy') loss = 'categoricalCrossentropy';
 		else loss = tf.losses.meanSquaredError;
 
 		//Compilación

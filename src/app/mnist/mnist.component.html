@@ -33,15 +33,14 @@
                 </div>
                 <ng-template #modalConv>
                     <ul>
-                        <li>En una red convolucional puede utilizarse cualquiera de las capas disponibles, pero se deben
-                            respetar ciertas restricciones</li>
+                        <li>En una red convolucional puede utilizarse cualquiera de las capas disponibles, respetando ciertas restricciones</li>
                         <li>La primera capa será convolucional</li>
                         <li>No pueden ponerse dos capas Dropout consecutivas</li>
                         <li>La red debe terminar con una capa Dense con función de activación Softmax</li>
                         <li>Antes de cualquier capa Dense, debe ponerse una capa Flatten para adaptar el formato de los
                             datos</li>
                         <li>No se puede tener dos capas Dropout consecutivas</li>
-                        <li>No se puede tener una capa Dropout luego de la Flatten inicial</li>
+                        <li>No se puede tener una capa Dropout luego de la capa Flatten</li>
                     </ul>
                 </ng-template>
             </div>
