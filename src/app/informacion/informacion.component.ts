@@ -16,7 +16,9 @@ export class InformacionComponent implements OnInit {
 		estructura: false,
 		activacion: false,
 		construccion: false,
-		tipos: false
+		tipos: false,
+		optimizador: false,
+		overfitting: false
 	};
 
 	data;

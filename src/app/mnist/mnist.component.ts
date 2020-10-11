@@ -65,8 +65,7 @@ export class MnistComponent implements OnInit {
 
 	// parámetros generales
 	learning_ratio = 0.15;
-	// epochs = 10;
-	epochs = 2;
+	epochs = 10;
 	epochActual = 0;
 	batch_size = 120;
 	metricas = [ 'accuracy' ];
@@ -371,6 +370,7 @@ export class MnistComponent implements OnInit {
 				metric: this.metric,
 				cost_function: this.cost_function,
 				batch_size: this.batch_size,
+				optimizer: this.optimizer,
 				net: this.net
 			};
 
@@ -401,6 +401,7 @@ export class MnistComponent implements OnInit {
 			this.batch_size = data.batch_size;
 			this.metric = data.metric;
 			this.cost_function = data.cost_function;
+			this.optimizer = data.optimizer;
 			this.net = data.net;
 			this.actualizarCodigo1();
 			this.actualizarCodigo();

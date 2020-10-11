@@ -12,22 +12,22 @@
 
         <div *ngIf="expanded.estructura; then g1 else g2"></div>
         <ng-template #g1>
-            <div class="titulo" (click)="show('estructura')">Estructura de una Red Neuronal <i class="fas fa-sort-up float-right pt-2"></i></div>
+            <div class="titulo" (click)="show('estructura')">Estructura de una Red Neuronal Artificial <i class="fas fa-sort-up float-right pt-2"></i></div>
             <div class="informacion">{{data.estructura}}</div>
 
         </ng-template>
         <ng-template #g2>
-                <div class="titulo" (click)="show('estructura')">Estructura de una Red Neuronal <i class="fas fa-sort-down float-right"></i></div>
+                <div class="titulo" (click)="show('estructura')">Estructura de una Red Neuronal Artificial <i class="fas fa-sort-down float-right"></i></div>
         </ng-template>
 
         <div *ngIf="expanded.construccion; then i1 else i2"></div>
         <ng-template #i1>
-            <div class="titulo" (click)="show('construccion')">Construcción de una Red Neuronal <i class="fas fa-sort-up float-right pt-2"></i></div>
+            <div class="titulo" (click)="show('construccion')">Construcción de una Red Neuronal Artificial <i class="fas fa-sort-up float-right pt-2"></i></div>
             <div class="informacion">{{data.construccion}}</div>
 
         </ng-template>
         <ng-template #i2>
-                <div class="titulo" (click)="show('construccion')">Construcción de una Red Neuronal <i class="fas fa-sort-down float-right"></i></div>
+                <div class="titulo" (click)="show('construccion')">Construcción de una Red Neuronal Artificial <i class="fas fa-sort-down float-right"></i></div>
         </ng-template>
 
         <div *ngIf="expanded.tipos; then j1 else j2"></div>
@@ -38,6 +38,46 @@
         </ng-template>
         <ng-template #j2>
             <div class="titulo" (click)="show('tipos')">Tipos de Redes y Capas <i class="fas fa-sort-down float-right"></i></div>
+        </ng-template>
+
+        <div *ngIf="expanded.cost_function; then e1 else e2"></div>
+        <ng-template #e1>
+            <div class="titulo" (click)="show('cost_function')">Función de Costo <i class="fas fa-sort-up float-right pt-2"></i></div>
+            <div class="informacion">{{data.cost_function}}</div>
+            
+        </ng-template>
+        <ng-template #e2>
+            <div class="titulo" (click)="show('cost_function')">Función de Costo <i class="fas fa-sort-down float-right"></i></div>
+        </ng-template>
+
+        <div *ngIf="expanded.optimizador; then k1 else k2"></div>
+        <ng-template #k1>
+            <div class="titulo" (click)="show('optimizador')">Optimizador <i class="fas fa-sort-up float-right pt-2"></i></div>
+            <div class="informacion">{{data.optimizador}}</div>
+            
+        </ng-template>
+        <ng-template #k2>
+            <div class="titulo" (click)="show('optimizador')">Optimizador <i class="fas fa-sort-down float-right"></i></div>
+        </ng-template>
+
+        <div *ngIf="expanded.metric; then d1 else d2"></div>
+        <ng-template #d1>
+            <div class="titulo" (click)="show('metric')">Métrica <i class="fas fa-sort-up float-right pt-2"></i></div>
+            <div class="informacion">{{data.metric}}</div>
+            
+        </ng-template>
+        <ng-template #d2>
+            <div class="titulo" (click)="show('metric')">Métrica <i class="fas fa-sort-down float-right"></i></div>
+        </ng-template>
+
+        <div *ngIf="expanded.overfitting; then l1 else l2"></div>
+        <ng-template #l1>
+            <div class="titulo" (click)="show('overfitting')">Overfitting <i class="fas fa-sort-up float-right pt-2"></i></div>
+            <div class="informacion">{{data.overfitting}}</div>
+            
+        </ng-template>
+        <ng-template #l2>
+            <div class="titulo" (click)="show('overfitting')">Overfitting <i class="fas fa-sort-down float-right"></i></div>
         </ng-template>
         
         <div *ngIf="expanded.learning_rate; then b1 else b2"></div>
@@ -50,7 +90,6 @@
             <div class="titulo" (click)="show('learning_rate')">Learning Ratio <i class="fas fa-sort-down float-right"></i></div>
         </ng-template>
         
-        
         <div *ngIf="expanded.ciclos; then c1 else c2"></div>
         <ng-template #c1>
             <div class="titulo" (click)="show('ciclos')">Ciclos <i class="fas fa-sort-up float-right pt-2"></i></div>
@@ -59,27 +98,6 @@
         </ng-template>
         <ng-template #c2>
             <div class="titulo" (click)="show('ciclos')">Ciclos <i class="fas fa-sort-down float-right"></i></div>
-        </ng-template>
-        
-        
-        <div *ngIf="expanded.metric; then d1 else d2"></div>
-        <ng-template #d1>
-            <div class="titulo" (click)="show('metric')">Métrica <i class="fas fa-sort-up float-right pt-2"></i></div>
-            <div class="informacion">{{data.metric}}</div>
-            
-        </ng-template>
-        <ng-template #d2>
-            <div class="titulo" (click)="show('metric')">Métrica <i class="fas fa-sort-down float-right"></i></div>
-        </ng-template>
-        
-        <div *ngIf="expanded.cost_function; then e1 else e2"></div>
-        <ng-template #e1>
-            <div class="titulo" (click)="show('cost_function')">Función de Costo <i class="fas fa-sort-up float-right pt-2"></i></div>
-            <div class="informacion">{{data.cost_function}}</div>
-            
-        </ng-template>
-        <ng-template #e2>
-            <div class="titulo" (click)="show('cost_function')">Función de Costo <i class="fas fa-sort-down float-right"></i></div>
         </ng-template>
         
         <div *ngIf="expanded.batch_size; then f1 else f2"></div>
