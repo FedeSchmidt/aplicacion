@@ -15,10 +15,25 @@ export class MnistComponent implements OnInit {
 	IMAGE_SIZE = 784;
 	NUM_CLASSES = 10;
 	NUM_DATASET_ELEMENTS = 65000;
-	NUM_TRAIN_ELEMENTS = 55000;
-	NUM_TEST_ELEMENTS = this.NUM_DATASET_ELEMENTS - this.NUM_TRAIN_ELEMENTS;
+	// NUM_TRAIN_ELEMENTS = 55000;
+	porc_examples_test = 0.2;
+	porc_examples_train = 0;
+	porc_examples_val = 0;
+	ratio_val = 0.2;
+	// porc_examples_train = Math.floor((1 - this.porc_examples_test)* 0.85);
+	// porc_examples_val = Math.floor((1 - this.porc_examples_test)* 0.15);
+	// porc_examples_val = Math.floor(1- this.porc_examples_test - this.porc_examples_train);
+	NUM_TEST_ELEMENTS = Math.floor(this.NUM_DATASET_ELEMENTS * this.porc_examples_test);
+	// NUM_TRAIN_ELEMENTS = Math.floor(this.NUM_DATASET_ELEMENTS * (1 - this.porc_examples_test));
+	// NUM_VAL_ELEMENTS = Math.floor(this.NUM_TRAIN_ELEMENTS * 0.15);
+	NUM_TRAIN_ELEMENTS = 0;
+	NUM_VAL_ELEMENTS = 0;
 	IMAGE_H = 28;
 	IMAGE_W = 28;
+
+	num_val_els = Math.floor(this.NUM_TRAIN_ELEMENTS * 0.15);
+	num_train_els = Math.floor(this.NUM_TRAIN_ELEMENTS - this.num_val_els);
+	// habilitar_proc = true;
 
 	datasetImages: Float32Array;
 	datasetLabels: Uint8Array;
@@ -64,7 +79,7 @@ export class MnistComponent implements OnInit {
 	trainset_accuracy = '---';
 
 	// parámetros generales
-	learning_ratio = 0.15;
+	learning_ratio = 0.01;
 	epochs = 10;
 	epochActual = 0;
 	batch_size = 120;
@@ -208,6 +223,12 @@ export class MnistComponent implements OnInit {
 	constructor() {}
 
 	ngOnInit() {
+		this.porc_examples_train = Math.round((1 - this.porc_examples_test)* (1-this.ratio_val) * 100);
+		this.porc_examples_val = Math.round((1 - this.porc_examples_test)* this.ratio_val * 100);
+
+		this.NUM_TRAIN_ELEMENTS = Math.round(this.NUM_DATASET_ELEMENTS * this.porc_examples_train / 100);
+		this.NUM_VAL_ELEMENTS = Math.round(this.NUM_DATASET_ELEMENTS * this.porc_examples_val / 100);
+		
 		//Arma la red de inicio
 		this.actualizarRedBase();
 
@@ -329,7 +350,11 @@ export class MnistComponent implements OnInit {
 					prediccion.innerHTML = 'Predicción: ' + this.predictions[i];
 					let confianza = document.createElement('h6');
 					confianza.id = 'conf' + i;
-					confianza.innerHTML = 'Conf: ' + this.grados_conf[i].toFixed(2) + '%';
+					if(this.grados_conf[i] < 100){
+						confianza.innerHTML = 'Conf: ' + this.grados_conf[i].toFixed(2) + '%';
+					}else{
+						confianza.innerHTML = 'Conf: ' + this.grados_conf[i].toFixed(0) + '%';
+					}
 					div.appendChild(prediccion);
 					div.appendChild(confianza);
 				} else {
@@ -596,6 +621,12 @@ export class MnistComponent implements OnInit {
 			this.entrenando = true;
 			this.resultados = true;
 
+			this.trainImages = this.datasetImages.slice(0, this.IMAGE_SIZE * this.NUM_TRAIN_ELEMENTS);
+			this.testImages = this.datasetImages.slice(this.IMAGE_SIZE * this.NUM_TRAIN_ELEMENTS);
+			this.trainLabels = this.datasetLabels.slice(0, this.NUM_CLASSES * this.NUM_TRAIN_ELEMENTS);
+			this.testLabels = this.datasetLabels.slice(this.NUM_CLASSES * this.NUM_TRAIN_ELEMENTS);
+			this.cargarEjemplos(0);
+
 			//Reinicia la tabla de entrenamiento y los gráficos (para permitir dos entrenamientos seguidos sin recargar)
 			this.epochActual = 0;
 			this.res_obtenidos = {};
@@ -657,7 +688,7 @@ export class MnistComponent implements OnInit {
 		const batchSize = this.batch_size;
 
 		// Leave out the last 15% of the training data for validation, to monitor overfitting during training.
-		const validationSplit = 0.15;
+		const validationSplit = this.ratio_val;
 
 		// Get number of training epochs from the UI.
 		const trainEpochs = this.epochs;
@@ -878,6 +909,21 @@ export class MnistComponent implements OnInit {
 		}
 
 		this.actualizarCodigo1();
+	}
+
+	actualizar_proporcion(){
+		this.porc_examples_train = Math.round((1 - this.porc_examples_test)* (1-this.ratio_val) * 100);
+		this.porc_examples_val = Math.round((1 - this.porc_examples_test)* this.ratio_val * 100);
+
+		this.NUM_TEST_ELEMENTS = Math.floor(this.NUM_DATASET_ELEMENTS * this.porc_examples_test);
+		this.NUM_TRAIN_ELEMENTS = Math.round(this.NUM_DATASET_ELEMENTS * this.porc_examples_train / 100);
+		this.NUM_VAL_ELEMENTS = Math.round(this.NUM_DATASET_ELEMENTS * this.porc_examples_val / 100);
+		// this.NUM_TRAIN_ELEMENTS = Math.floor(this.NUM_DATASET_ELEMENTS * (1 - this.porc_examples));
+		// this.NUM_VAL_ELEMENTS = Math.floor(this.NUM_TRAIN_ELEMENTS * 0.15);
+		// console.log(this.NUM_VAL_ELEMENTS);
+		
+		// this.num_val_els = Math.floor(this.NUM_TRAIN_ELEMENTS * 0.15);
+		// this.num_train_els = Math.floor(this.NUM_TRAIN_ELEMENTS - this.num_val_els);
 	}
 
 	//i: entero número de la capa
