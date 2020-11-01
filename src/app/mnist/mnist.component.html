@@ -104,7 +104,7 @@
                 <i class="fas fa-info-circle ml-1"
                     title="Controla los cambios en los pesos y biases de la red neuronal"></i>
             </h6>
-            <input type="number" step=".01" class="form-control" [(ngModel)]="learning_ratio"
+            <input type="number" step=".01" min=".01" class="form-control" [(ngModel)]="learning_ratio"
                 (change)="actualizarCodigo()" />
         </div>
         <div>
@@ -113,11 +113,11 @@
                 <i class="fas fa-info-circle ml-1" title="División de ejemplos para entrenamiento y test. Validación: 20% del conjunto de entrenamiento"></i>
             </h6>
 
-            <input type="number" step=".05" class="form-control" [(ngModel)]="porc_examples_test"
+            <input type="number" step=".05" min=".05" max=".95" class="form-control" [(ngModel)]="porc_examples_test"
                 (change)="actualizar_proporcion()" />
             <div class="mt-2">
-                <p>Train ({{ porc_examples_train }}%): {{ NUM_TRAIN_ELEMENTS }} ejemplos</p>
-                <p>Validation ({{ porc_examples_val }}%): {{ NUM_VAL_ELEMENTS }} ejemplos</p>
+                <p>Train ({{ porc_examples_train }}%): {{ EXAMPLES_TRAIN }} ejemplos</p>
+                <p>Validation ({{ porc_examples_val }}%): {{ EXAMPLES_VAL }} ejemplos</p>
                 <p>Test ({{ porc_examples_test * 100 }}%): {{ NUM_TEST_ELEMENTS }} ejemplos</p>
             </div>
         </div>
@@ -127,7 +127,7 @@
                 <i class="fas fa-info-circle ml-1"
                     title="Número de veces en que la red procesa el conjunto de entrenamiento"></i>
             </h6>
-            <input type="number" class="form-control" name="epochs" [(ngModel)]="epochs"
+            <input type="number" min="1" class="form-control" name="epochs" [(ngModel)]="epochs"
                 (change)="actualizarCodigo()" />
         </div>
         <div>
@@ -164,7 +164,7 @@
                 <i class="fas fa-info-circle ml-1" title="Permite tomar los elementos de entrenamiento de a grupos"></i>
             </h6>
             <div class="input-batch" (change)="actualizarCodigo()">
-                <input type="number" name="batch_size" class="form-control" [(ngModel)]="batch_size" />
+                <input type="number" min="1" name="batch_size" class="form-control" [(ngModel)]="batch_size" />
             </div>
         </div>
         <div>
@@ -250,7 +250,7 @@
                                 <td>-</td>
                                 <td>-</td>
                                 <td>
-                                    <input type="number" step=".01" class="form-control"
+                                    <input type="number" step=".01" min="0" class="form-control"
                                         (change)="onChange($event.target.value, 'ratio', i)"
                                         value="{{ layer.ratio }}" />
                                 </td>
@@ -258,7 +258,7 @@
                             </ng-template>
                             <ng-template #rowDense>
                                 <td>
-                                    <input type="number" class="form-control"
+                                    <input type="number" min="1" class="form-control"
                                         (change)="onChange($event.target.value, 'units', i)"
                                         value="{{ layer.units }}" />
                                 </td>
@@ -292,7 +292,7 @@
                             <td class="disabled_conv_layer">Convolutional</td>
 
                             <td>
-                                <input type="number" class="form-control"
+                                <input type="number" min="1" class="form-control"
                                     (change)="onChange($event.target.value, 'units', i)" value="{{ layer.units }}" />
                             </td>
                             <td>
@@ -348,7 +348,7 @@
                                     <td>-</td>
                                     <td>-</td>
                                     <td>
-                                        <input type="number" step=".01" class="form-control"
+                                        <input type="number" step=".01" min="0" class="form-control"
                                             (change)="onChange($event.target.value, 'ratio', i)"
                                             value="{{ layer.ratio }}" />
                                     </td>
@@ -388,7 +388,7 @@
                                         </ng-template>
                                         <ng-template #rowNoFlatten>
                                             <td>
-                                                <input type="number" class="form-control"
+                                                <input type="number" min="1" class="form-control"
                                                     (change)="onChange($event.target.value, 'units', i)"
                                                     value="{{ layer.units }}" />
                                             </td>

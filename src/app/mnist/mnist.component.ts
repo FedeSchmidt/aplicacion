@@ -19,21 +19,15 @@ export class MnistComponent implements OnInit {
 	porc_examples_test = 0.2;
 	porc_examples_train = 0;
 	porc_examples_val = 0;
+	EXAMPLES_TRAIN = 0
+	EXAMPLES_VAL = 0
 	ratio_val = 0.2;
-	// porc_examples_train = Math.floor((1 - this.porc_examples_test)* 0.85);
-	// porc_examples_val = Math.floor((1 - this.porc_examples_test)* 0.15);
-	// porc_examples_val = Math.floor(1- this.porc_examples_test - this.porc_examples_train);
 	NUM_TEST_ELEMENTS = Math.floor(this.NUM_DATASET_ELEMENTS * this.porc_examples_test);
-	// NUM_TRAIN_ELEMENTS = Math.floor(this.NUM_DATASET_ELEMENTS * (1 - this.porc_examples_test));
-	// NUM_VAL_ELEMENTS = Math.floor(this.NUM_TRAIN_ELEMENTS * 0.15);
-	NUM_TRAIN_ELEMENTS = 0;
-	NUM_VAL_ELEMENTS = 0;
+	NUM_TRAIN_ELEMENTS = this.NUM_DATASET_ELEMENTS - this.NUM_TEST_ELEMENTS;
+	// NUM_TRAIN_ELEMENTS = 0;
+	// NUM_VAL_ELEMENTS = 0;
 	IMAGE_H = 28;
 	IMAGE_W = 28;
-
-	num_val_els = Math.floor(this.NUM_TRAIN_ELEMENTS * 0.15);
-	num_train_els = Math.floor(this.NUM_TRAIN_ELEMENTS - this.num_val_els);
-	// habilitar_proc = true;
 
 	datasetImages: Float32Array;
 	datasetLabels: Uint8Array;
@@ -79,7 +73,7 @@ export class MnistComponent implements OnInit {
 	trainset_accuracy = '---';
 
 	// parámetros generales
-	learning_ratio = 0.01;
+	learning_ratio = 0.1;
 	epochs = 10;
 	epochActual = 0;
 	batch_size = 120;
@@ -226,8 +220,8 @@ export class MnistComponent implements OnInit {
 		this.porc_examples_train = Math.round((1 - this.porc_examples_test)* (1-this.ratio_val) * 100);
 		this.porc_examples_val = Math.round((1 - this.porc_examples_test)* this.ratio_val * 100);
 
-		this.NUM_TRAIN_ELEMENTS = Math.round(this.NUM_DATASET_ELEMENTS * this.porc_examples_train / 100);
-		this.NUM_VAL_ELEMENTS = Math.round(this.NUM_DATASET_ELEMENTS * this.porc_examples_val / 100);
+		this.EXAMPLES_TRAIN = Math.round(this.NUM_TRAIN_ELEMENTS * (1- this.ratio_val));
+		this.EXAMPLES_VAL = Math.round(this.NUM_TRAIN_ELEMENTS * this.ratio_val);
 		
 		//Arma la red de inicio
 		this.actualizarRedBase();
@@ -848,7 +842,7 @@ export class MnistComponent implements OnInit {
 	}
 
 	newLayer() {
-		this.net.splice(this.net.length - 1, 0, new Layer('Dense', 0, 'ReLU', null, 0, '3x3'));
+		this.net.splice(this.net.length - 1, 0, new Layer('Dense', 1, 'ReLU', null, 0, '3x3'));
 		this.cant_capas++;
 		this.actualizarCodigo1();
 	}
@@ -916,14 +910,10 @@ export class MnistComponent implements OnInit {
 		this.porc_examples_val = Math.round((1 - this.porc_examples_test)* this.ratio_val * 100);
 
 		this.NUM_TEST_ELEMENTS = Math.floor(this.NUM_DATASET_ELEMENTS * this.porc_examples_test);
-		this.NUM_TRAIN_ELEMENTS = Math.round(this.NUM_DATASET_ELEMENTS * this.porc_examples_train / 100);
-		this.NUM_VAL_ELEMENTS = Math.round(this.NUM_DATASET_ELEMENTS * this.porc_examples_val / 100);
-		// this.NUM_TRAIN_ELEMENTS = Math.floor(this.NUM_DATASET_ELEMENTS * (1 - this.porc_examples));
-		// this.NUM_VAL_ELEMENTS = Math.floor(this.NUM_TRAIN_ELEMENTS * 0.15);
-		// console.log(this.NUM_VAL_ELEMENTS);
-		
-		// this.num_val_els = Math.floor(this.NUM_TRAIN_ELEMENTS * 0.15);
-		// this.num_train_els = Math.floor(this.NUM_TRAIN_ELEMENTS - this.num_val_els);
+		this.NUM_TRAIN_ELEMENTS = this.NUM_DATASET_ELEMENTS - this.NUM_TEST_ELEMENTS;
+
+		this.EXAMPLES_TRAIN = Math.round(this.NUM_TRAIN_ELEMENTS * (1- this.ratio_val));
+		this.EXAMPLES_VAL = Math.round(this.NUM_TRAIN_ELEMENTS * this.ratio_val);
 	}
 
 	//i: entero número de la capa
