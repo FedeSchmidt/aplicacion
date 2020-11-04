@@ -174,13 +174,25 @@
                 </button>
             </div>
             <div class="col col-md-6 div-btn-cargar">
-                <!-- <button type="input" class="btn btn-primary boton boton-cargar-modelo" (click)="cargarModelo()">Importar</button> -->
-                <label for="file" class="labelImportar">
-                    <div>Importar</div>
-                    <input type="file" name="file" (change)="cvChanged($event)" accept=".json" id="input_config"
-                        class="input_file" />
-                </label>
+                <button type="button" class="btn btn-primary boton boton-cargar-modelo" [disabled]="!posible_cargar" (click)="cargarModelo()">
+                    Cargar
+                </button>
             </div>
+            <div class="col col-md-6 div-btn-cargar">
+                <button type="button" class="btn btn-primary boton boton-guardar-modelo" (click)="exportarModelo()">
+                    Exportar
+                </button>
+            </div>
+            <div class="col col-md-6 div-btn-cargar">
+            <!-- <button type="input" class="btn btn-primary boton boton-cargar-modelo" data-toggle="modal" data-target="#modalImport" >Importar</button> -->
+            
+            <label for="file" class="labelImportar">
+                <div>Importar</div>
+                <input type="file" name="file" (change)="cvChanged($event)" accept=".json" id="input_config"
+                    class="input_file" />
+            </label> 
+            </div>
+            
         </div>
     </div>
 

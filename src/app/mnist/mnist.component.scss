@@ -161,10 +161,41 @@ p {
 	border-top-right-radius: 0px;
 }
 
+.boton-cargar-modelo {
+	width: 100%;
+	text-align: center;
+	border: 1px solid #ebebeb;
+	border-bottom-left-radius: 0px;
+	border-top-left-radius: 0px;
+	border-bottom-right-radius: 5px;
+	border-top-right-radius: 5px;
+}
+
+.modal-import{
+	max-width: 100%;
+	text-align: center;
+}
+
+.boton-exportar-modelo {
+	width: 100%;
+	text-align: center;
+	border: 1px solid #ebebeb;
+	border-radius: 0px;
+}
+
 @media (max-width: 767px) {
 	.boton-guardar-modelo {
 		border-bottom-right-radius: 5px;
 		border-top-right-radius: 5px;
+	}
+
+	.boton-cargar-modelo {
+		border-bottom-left-radius: 5px;
+		border-top-left-radius: 5px;
+	}
+
+	.boton-exportar-modelo {
+		border-radius: 5px;
 	}
 
 	.labelImportar {

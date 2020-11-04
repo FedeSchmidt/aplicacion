@@ -10,6 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MnistComponent } from './mnist/mnist.component';
 import { NavbarComponent } from './navbar/navbar.component';
+import { ToastrModule } from 'ngx-toastr';
 
 const appRoutes: Routes = [
 	{ path: '', component: MnistComponent },
@@ -25,7 +26,8 @@ const appRoutes: Routes = [
 		MatSliderModule,
 		MatButtonModule,
 		MatInputModule,
-		FormsModule
+		FormsModule,
+		ToastrModule.forRoot()
 	],
 	providers: [],
 	bootstrap: [ AppComponent ]

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
 import { Layer } from './../models/layer';
 import Chart from 'chart.js';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
 	selector: 'app-mnist',
@@ -24,10 +25,9 @@ export class MnistComponent implements OnInit {
 	ratio_val = 0.2;
 	NUM_TEST_ELEMENTS = Math.floor(this.NUM_DATASET_ELEMENTS * this.porc_examples_test);
 	NUM_TRAIN_ELEMENTS = this.NUM_DATASET_ELEMENTS - this.NUM_TEST_ELEMENTS;
-	// NUM_TRAIN_ELEMENTS = 0;
-	// NUM_VAL_ELEMENTS = 0;
 	IMAGE_H = 28;
 	IMAGE_W = 28;
+	posible_cargar = false;
 
 	datasetImages: Float32Array;
 	datasetLabels: Uint8Array;
@@ -214,7 +214,7 @@ export class MnistComponent implements OnInit {
 	lossChart: any;
 	predictionChart: any;
 
-	constructor() {}
+	constructor(private toastr: ToastrService) {}
 
 	ngOnInit() {
 		this.porc_examples_train = Math.round((1 - this.porc_examples_test)* (1-this.ratio_val) * 100);
@@ -222,6 +222,12 @@ export class MnistComponent implements OnInit {
 
 		this.EXAMPLES_TRAIN = Math.round(this.NUM_TRAIN_ELEMENTS * (1- this.ratio_val));
 		this.EXAMPLES_VAL = Math.round(this.NUM_TRAIN_ELEMENTS * this.ratio_val);
+
+		if (typeof(Storage) !== "undefined") {
+			// LocalStorage disponible
+			if(localStorage.getItem("titulo") != undefined)
+				this.posible_cargar = true;
+		}
 		
 		//Arma la red de inicio
 		this.actualizarRedBase();
@@ -378,7 +384,65 @@ export class MnistComponent implements OnInit {
 		}
 	}
 
-	guardarModelo() {
+	guardarModelo(){
+		if (typeof(Storage) !== "undefined") {
+			// LocalStorage disponible
+
+			let obj = {
+				tipo_red: this.tipo_red,
+				learning_ratio: this.learning_ratio,
+				epochs: this.epochs,
+				metric: this.metric,
+				cost_function: this.cost_function,
+				batch_size: this.batch_size,
+				optimizer: this.optimizer,
+				porc_examples_test: this.porc_examples_test,
+				net: this.net
+			};
+			localStorage.setItem("network", JSON.stringify(obj));
+
+			this.posible_cargar = true;
+			this.toastr.success('Modelo guardado en localStorage');
+
+		} else {
+			// LocalStorage no soportado en este navegador
+			console.log("No se pudo guardar la información...");
+			this.toastr.warning('No se pudo guardar la información');
+		}		
+	}
+
+	cargarModelo(){
+		if (typeof(Storage) !== "undefined") {
+			// LocalStorage disponible
+			const data = JSON.parse(localStorage.getItem("network"));
+
+			this.tipo_red = data.tipo_red;
+			this.learning_ratio = data.learning_ratio;
+			this.epochs = data.epochs;
+			this.batch_size = data.batch_size;
+			this.metric = data.metric;
+			this.cost_function = data.cost_function;
+			this.optimizer = data.optimizer;
+			this.porc_examples_test = data.porc_examples_test;
+			this.net = data.net;
+			this.actualizarCodigo1();
+			this.actualizarCodigo();
+
+			this.toastr.success('Modelo cargado de localStorage');
+		} else {
+			// LocalStorage no soportado en este navegador
+			console.log("No se pudo cargar la información...");
+			this.toastr.warning('No se pudo cargar la información');
+		}
+	}
+
+	// async exportarModelo(){
+	// 	if(this.modelo_entrenado){
+
+	// 		await this.model.save('downloads://model_mnist');
+	// 	}
+	// }
+	exportarModelo() {
 		if (this.chequearEstructura()) {
 			//Armo un objeto con los parámetros y la estructura de la red.
 			//Lo descarga con un link ficticio
@@ -390,6 +454,7 @@ export class MnistComponent implements OnInit {
 				cost_function: this.cost_function,
 				batch_size: this.batch_size,
 				optimizer: this.optimizer,
+				porc_examples_test: this.porc_examples_test,
 				net: this.net
 			};
 
@@ -421,6 +486,7 @@ export class MnistComponent implements OnInit {
 			this.metric = data.metric;
 			this.cost_function = data.cost_function;
 			this.optimizer = data.optimizer;
+			this.porc_examples_test = data.porc_examples_test;
 			this.net = data.net;
 			this.actualizarCodigo1();
 			this.actualizarCodigo();
