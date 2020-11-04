@@ -225,7 +225,7 @@ export class MnistComponent implements OnInit {
 
 		if (typeof(Storage) !== "undefined") {
 			// LocalStorage disponible
-			if(localStorage.getItem("titulo") != undefined)
+			if(localStorage.getItem("network") != undefined)
 				this.posible_cargar = true;
 		}
 		
