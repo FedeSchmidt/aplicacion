@@ -967,6 +967,9 @@ export class MnistComponent implements OnInit {
 				}
 			}
 		}
+		else if(field === 'activation'){
+			this.net[index][field] = value;
+		}
 
 		this.actualizarCodigo1();
 	}
