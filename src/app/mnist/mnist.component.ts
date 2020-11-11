@@ -326,6 +326,7 @@ export class MnistComponent implements OnInit {
 			const conf = this.y_pred.max(1);
 			const scalar = tf.scalar(100);
 			this.grados_conf = Array.from(tf.mul(conf, scalar).dataSync());
+			console.log(this.grados_conf);
 			this.barChartData = Array.from(this.y_pred.dataSync());
 		}
 
@@ -344,23 +345,30 @@ export class MnistComponent implements OnInit {
 				document.getElementById('real' + i).innerHTML = 'Real: ' + this.prediction_labels[i];
 			}
 			if (this.modelo_entrenado) {
-				if (document.getElementById('prediccion' + i) == undefined) {
+				//Agrega o actualiza la etiqueta con la predicción de la red sobre cada ejemplo
+				if(document.getElementById('prediccion' + i) == undefined){
 					let prediccion = document.createElement('h6');
 					prediccion.id = 'prediccion' + i;
 					prediccion.innerHTML = 'Predicción: ' + this.predictions[i];
-					let confianza = document.createElement('h6');
-					confianza.id = 'conf' + i;
-					if(this.grados_conf[i] < 100){
-						confianza.innerHTML = 'Conf: ' + this.grados_conf[i].toFixed(2) + '%';
-					}else{
-						confianza.innerHTML = 'Conf: ' + this.grados_conf[i].toFixed(0) + '%';
-					}
 					div.appendChild(prediccion);
-					div.appendChild(confianza);
-				} else {
+				}
+				else{
 					document.getElementById('prediccion' + i).innerHTML = 'Predicción: ' + this.predictions[i];
 				}
 
+				//Agrega o actualiza la etiqueta con la confianza de la salida sobre cada ejemplo.
+				let grados_ej = (this.grados_conf[i] < 100) ? this.grados_conf[i].toFixed(2) : this.grados_conf[i].toFixed(0); 
+				if(document.getElementById('conf'+ i) == undefined){
+					let confianza = document.createElement('h6');
+					confianza.id = 'conf' + i;
+					confianza.innerHTML = 'Conf: ' + grados_ej + '%';
+					div.appendChild(confianza);
+				}
+				else{
+					document.getElementById('conf' + i).innerHTML = 'Conf: ' + grados_ej + '%';
+				}
+
+				//Cambia los colores de bordes entre rojo y verde, según la predicción sea correcta o no.
 				if (this.prediction_labels[i] !== this.predictions[i]) {
 					canvas.classList.remove('pred-bien');
 					canvas.classList.add('pred-mal');
@@ -681,6 +689,11 @@ export class MnistComponent implements OnInit {
 			this.entrenando = true;
 			this.resultados = true;
 
+			// if(this.porc_examples_test != 0.2){
+
+
+			// }
+
 			this.trainImages = this.datasetImages.slice(0, this.IMAGE_SIZE * this.NUM_TRAIN_ELEMENTS);
 			this.testImages = this.datasetImages.slice(this.IMAGE_SIZE * this.NUM_TRAIN_ELEMENTS);
 			this.trainLabels = this.datasetLabels.slice(0, this.NUM_CLASSES * this.NUM_TRAIN_ELEMENTS);
@@ -865,7 +878,7 @@ export class MnistComponent implements OnInit {
 
 		this.datasetLabels = new Uint8Array(await labelsResponse.arrayBuffer());
 
-		// Slice the the images and labels into train and test sets.
+		// Slice the images and labels into train and test sets.
 		this.trainImages = this.datasetImages.slice(0, this.IMAGE_SIZE * this.NUM_TRAIN_ELEMENTS);
 		this.testImages = this.datasetImages.slice(this.IMAGE_SIZE * this.NUM_TRAIN_ELEMENTS);
 		this.trainLabels = this.datasetLabels.slice(0, this.NUM_CLASSES * this.NUM_TRAIN_ELEMENTS);
@@ -1010,6 +1023,11 @@ export class MnistComponent implements OnInit {
 
 	chequearEstructura() {
 		let salida = true;
+		if(this.porc_examples_test > 0.95){
+			this.error = true;
+			this.mensaje_error = "Proporción del conjunto de test demasiado grande... Como máximo puede ser 0.95";
+			salida = false;
+		}
 		for (let i = 1; i < this.net.length; i++) {
 			let validos = this.listaValidos(i);
 			if (validos.indexOf(this.net[i]['type']) == -1) {
