@@ -988,6 +988,9 @@ export class MnistComponent implements OnInit {
 	}
 
 	actualizar_proporcion(){
+		if (this.porc_examples_test > 0.95){
+			this.porc_examples_test = 0.95;
+		}
 		this.porc_examples_train = Math.round((1 - this.porc_examples_test)* (1-this.ratio_val) * 100);
 		this.porc_examples_val = Math.round((1 - this.porc_examples_test)* this.ratio_val * 100);
 
@@ -1023,11 +1026,7 @@ export class MnistComponent implements OnInit {
 
 	chequearEstructura() {
 		let salida = true;
-		if(this.porc_examples_test > 0.95){
-			this.error = true;
-			this.mensaje_error = "Proporción del conjunto de test demasiado grande... Como máximo puede ser 0.95";
-			salida = false;
-		}
+		
 		for (let i = 1; i < this.net.length; i++) {
 			let validos = this.listaValidos(i);
 			if (validos.indexOf(this.net[i]['type']) == -1) {
