@@ -357,7 +357,10 @@ export class MnistComponent implements OnInit {
 				}
 
 				//Agrega o actualiza la etiqueta con la confianza de la salida sobre cada ejemplo.
-				let grados_ej = (this.grados_conf[i] < 100) ? this.grados_conf[i].toFixed(2) : this.grados_conf[i].toFixed(0); 
+				let grados_ej = this.grados_conf[i].toFixed(2);
+				if(parseFloat(this.grados_conf[i].toFixed(2)) == 100){
+					grados_ej = this.grados_conf[i].toFixed(0);
+				}
 				if(document.getElementById('conf'+ i) == undefined){
 					let confianza = document.createElement('h6');
 					confianza.id = 'conf' + i;
